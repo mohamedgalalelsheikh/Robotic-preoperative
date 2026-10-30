@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Robotic Surgery Unit — Preoperative Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0d2f4f; --navy2:#123d66; --teal:#0f8b8d; --teal-l:#e3f4f4;
+  --bg:#f3f6f9; --card:#fff; --ink:#1b2733; --mute:#66788a; --line:#dde5ec;
+  --ok:#1e8e4e; --ok-l:#e5f5ec; --warn:#c77700; --warn-l:#fff4e0; --bad:#c62f2f; --bad-l:#fdeaea;
+  --r:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:'Cairo',system-ui,-apple-system,Segoe UI,Tahoma,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.55;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+bdi{unicode-bidi:isolate}
+.en{direction:ltr;unicode-bidi:isolate}
+
+/* ---------- Header ---------- */
+.top{background:linear-gradient(135deg,var(--navy),var(--navy2) 60%,#145a7a);color:#fff;padding:14px 16px 16px;position:relative;overflow:hidden}
+.top::after{content:"";position:absolute;inset:auto -60px -80px auto;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.05)}
+.brand{display:flex;align-items:center;gap:12px;max-width:1100px;margin:0 auto;position:relative;z-index:1}
+.logo{width:48px;height:48px;flex:none;border-radius:12px;background:rgba(255,255,255,.12);display:grid;place-items:center}
+.brand h1{margin:0;font-size:18px;font-weight:800;line-height:1.25;direction:ltr;text-align:left}
+.brand .sub{font-size:12.5px;opacity:.85;direction:ltr;text-align:left}
+.brand .ar{font-size:12.5px;opacity:.8}
+.brand .titles{flex:1;min-width:0;text-align:left}
+.sheet-tag{display:inline-block;margin-top:4px;background:var(--teal);color:#fff;font-size:12px;font-weight:700;padding:1px 10px;border-radius:20px;direction:ltr}
+.sync{font-size:11.5px;opacity:.85;white-space:nowrap}
+
+/* ---------- Layout ---------- */
+.wrap{max-width:1100px;margin:0 auto;padding:14px 12px 120px}
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.btn{border:0;border-radius:10px;padding:9px 14px;font-weight:700;cursor:pointer;background:var(--card);color:var(--navy);box-shadow:0 1px 0 var(--line),0 0 0 1px var(--line) inset;display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-size:14px}
+.btn:active{transform:translateY(1px)}
+.btn.pri{background:var(--teal);color:#fff;box-shadow:none}
+.btn.navy{background:var(--navy);color:#fff;box-shadow:none}
+.btn.wa{background:#1fa855;color:#fff;box-shadow:none}
+.btn.danger{color:var(--bad)}
+.btn.sm{padding:6px 10px;font-size:13px}
+.btn[disabled]{opacity:.5;pointer-events:none}
+.search{flex:1;min-width:160px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:#fff;border-radius:20px;padding:4px 12px;font-size:13px;cursor:pointer;font-weight:600;color:var(--mute)}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+
+/* ---------- Case list ---------- */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.stat{background:var(--card);border-radius:var(--r);padding:10px 12px;box-shadow:0 0 0 1px var(--line) inset}
+.stat b{display:block;font-size:22px;color:var(--navy);line-height:1.2}
+.stat span{font-size:12px;color:var(--mute)}
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.case{background:var(--card);border-radius:var(--r);padding:12px 14px;box-shadow:0 0 0 1px var(--line) inset;cursor:pointer;display:flex;flex-direction:column;gap:6px;transition:box-shadow .15s}
+.case:hover{box-shadow:0 0 0 2px var(--teal) inset}
+.case .nm{font-weight:800;font-size:16px}
+.case .pr{font-size:13px;color:var(--navy2);font-weight:600}
+.case .meta{font-size:12.5px;color:var(--mute);display:flex;gap:10px;flex-wrap:wrap}
+.prog{height:7px;border-radius:7px;background:#e8eef3;overflow:hidden}
+.prog i{display:block;height:100%;border-radius:7px}
+.st{font-size:12px;font-weight:700;padding:2px 10px;border-radius:20px;white-space:nowrap}
+.st.ok{background:var(--ok-l);color:var(--ok)} .st.warn{background:var(--warn-l);color:var(--warn)} .st.bad{background:var(--bad-l);color:var(--bad)}
+.empty{text-align:center;color:var(--mute);padding:40px 10px;background:var(--card);border-radius:var(--r);box-shadow:0 0 0 1px var(--line) inset}
+.wkhead{grid-column:1/-1;font-weight:800;color:var(--navy);margin-top:6px;font-size:14px}
+
+/* ---------- Case editor ---------- */
+.casehead{background:var(--card);border-radius:var(--r);padding:12px 14px;box-shadow:0 0 0 1px var(--line) inset;margin-bottom:10px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.casehead .who{flex:1;min-width:180px}
+.casehead .who b{font-size:17px}
+.casehead .who div{font-size:13px;color:var(--mute)}
+.ring{width:54px;height:54px;flex:none}
+.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin-bottom:10px;position:sticky;top:0;z-index:5;background:var(--bg);padding:6px 0}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;border:0;background:var(--card);border-radius:10px;padding:8px 12px;font-weight:700;color:var(--mute);cursor:pointer;box-shadow:0 0 0 1px var(--line) inset;font-size:13.5px;position:relative}
+.tab.on{background:var(--navy);color:#fff;box-shadow:none}
+.tab .dot{position:absolute;top:4px;right:5px;width:8px;height:8px;border-radius:50%;background:var(--bad)}
+.panel{background:var(--card);border-radius:var(--r);box-shadow:0 0 0 1px var(--line) inset;padding:14px;margin-bottom:10px}
+.panel h3{margin:0 0 10px;font-size:15.5px;color:var(--navy);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.panel h3 small{font-weight:600;color:var(--mute);font-size:12px;direction:ltr}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 12px}
+.fld{display:flex;flex-direction:column;gap:3px;min-width:0}
+.fld label{font-size:12.5px;color:var(--mute);font-weight:600}
+.fld.wide{grid-column:1/-1}
+.body3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:10px 0;padding:10px;border-radius:12px;background:#f4f9fa;border:1px solid #d6ebec}
+.body3 .calc{min-height:40px;font-size:16px}
+input[type=date].inp{-webkit-appearance:none;appearance:none;display:block;min-width:0;max-width:100%;text-align:left}
+input[type=date].inp::-webkit-date-and-time-value{text-align:left}
+.fld{overflow:hidden}
+.inp{width:100%;border:1px solid var(--line);border-radius:9px;padding:8px 10px;background:#fbfdfe;min-height:40px}
+.inp:focus{outline:2px solid var(--teal);outline-offset:-1px;background:#fff}
+textarea.inp{min-height:72px;resize:vertical}
+input.ltr,select.ltr,textarea.ltr{direction:ltr;text-align:left}
+.chk{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fbfdfe;cursor:pointer;min-height:40px;justify-content:flex-start;flex-direction:row-reverse;text-align:left;font-size:13.5px}
+.chk input{width:18px;height:18px;accent-color:var(--teal);flex:none}
+.chk.on{background:var(--teal-l);border-color:#9fd6d7}
+.calc{background:var(--teal-l);border-radius:9px;padding:8px 10px;font-weight:700;color:var(--navy);direction:ltr;text-align:left;min-height:40px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.calc .t{font-size:11.5px;color:var(--mute);font-weight:600}
+.hint{font-size:12.5px;color:var(--mute);margin:6px 0 0}
+.note{border-radius:10px;padding:9px 12px;font-size:13.5px;margin-top:8px}
+.note.info{background:#eef4fb;color:#24476b}
+.note.warn{background:var(--warn-l);color:#7a4a00}
+.note.bad{background:var(--bad-l);color:#8a1f1f}
+
+/* investigations */
+.invt{width:100%;border-collapse:separate;border-spacing:0 6px;direction:ltr}
+.invt td{vertical-align:middle;padding:0 4px}
+.invrow{background:#fbfdfe}
+.invrow td:first-child{font-weight:600;font-size:13.5px;padding:6px 8px;border-radius:9px 0 0 9px;width:34%}
+.invrow td:last-child{border-radius:0 9px 9px 0}
+.invrow.miss td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
+.invrow.done td:first-child{box-shadow:inset 3px 0 0 var(--ok)}
+.invrow.abn td:first-child{box-shadow:inset 3px 0 0 var(--warn)}
+.invrow .inp{min-height:36px;padding:6px 8px;font-size:13.5px}
+.invrow .tag{font-size:11px;font-weight:700;padding:1px 7px;border-radius:10px;margin-left:6px;vertical-align:middle}
+.tag.stale{background:var(--warn-l);color:var(--warn)}
+.tag.flag{background:var(--bad-l);color:var(--bad)}
+.tag.att{background:var(--teal-l);color:var(--teal)}
+@media (max-width:640px){
+  .invt,.invt tbody,.invt tr,.invt td{display:block;width:100%!important}
+  .invrow{border-radius:10px;padding:6px;margin-bottom:8px;border:1px solid var(--line)}
+  .invrow td{padding:3px 2px}
+  .invrow td:first-child{border-radius:6px;padding:4px 8px}
+  .invrow .cells{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+}
+@media (min-width:641px){ .invrow .cells{display:grid;grid-template-columns:150px 1fr 150px;gap:6px} }
+
+/* checklist */
+.cl{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
+.cl .chk{justify-content:flex-start;flex-direction:row}
+.cl .chk span{flex:1;text-align:left}
+.cl .chk .rq{font-size:11px;color:var(--bad);font-weight:700}
+
+/* attachments */
+.drop{border:2px dashed #b9cfdc;border-radius:12px;padding:16px;text-align:center;color:var(--mute);background:#f8fbfd}
+.drop.over{border-color:var(--teal);background:var(--teal-l)}
+.atts{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:12px}
+.att{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;display:flex;flex-direction:column}
+.att .th{height:120px;background:#eef3f7;display:grid;place-items:center;cursor:pointer;overflow:hidden}
+.att .th img{width:100%;height:100%;object-fit:cover}
+.att .th .pdf{font-weight:800;color:var(--bad);font-size:22px}
+.att .bd{padding:7px;display:flex;flex-direction:column;gap:5px}
+.att .bd .inp{min-height:32px;padding:4px 6px;font-size:12.5px}
+.att .rm{color:var(--bad);font-size:12px;font-weight:700;background:none;border:0;cursor:pointer;align-self:flex-start;padding:0}
+
+/* summary */
+.flags{display:flex;flex-direction:column;gap:6px}
+.flag{border-radius:10px;padding:8px 12px;font-size:13.5px;display:flex;gap:8px;align-items:flex-start;direction:ltr;text-align:left}
+.flag.crit{background:var(--bad-l);color:#8a1f1f}
+.flag.warn{background:var(--warn-l);color:#7a4a00}
+.flag.info{background:#eef4fb;color:#24476b}
+.flag b{flex:none}
+.pend{columns:2 260px;font-size:13.5px;direction:ltr;text-align:left;margin:0;padding-left:18px}
+.msgbox{width:100%;min-height:180px;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fbfdfe;font-size:13.5px;white-space:pre-wrap}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* modal + toast */
+.modal{position:fixed;inset:0;background:rgba(10,25,40,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal.on{display:flex}
+.modal .box{background:#fff;border-radius:16px;padding:18px;max-width:420px;width:100%}
+.modal .box.big{max-width:900px;max-height:90vh;overflow:auto;padding:10px}
+.modal .box.big img{width:100%;height:auto;display:block;border-radius:8px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--navy);color:#fff;padding:10px 16px;border-radius:12px;font-weight:600;z-index:60;transition:transform .25s;max-width:92vw;text-align:center;font-size:14px}
+.toast.on{transform:translateX(-50%) translateY(0)}
+.busy{position:fixed;inset:0;background:rgba(255,255,255,.75);display:none;align-items:center;justify-content:center;z-index:70;flex-direction:column;gap:10px;font-weight:700;color:var(--navy)}
+.busy.on{display:flex}
+.spin{width:38px;height:38px;border-radius:50%;border:4px solid var(--teal-l);border-top-color:var(--teal);animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.foot{text-align:center;color:var(--mute);font-size:12px;margin-top:20px;direction:ltr}
+
+/* ---------- PDF report (rendered offscreen) ---------- */
+#rep{position:fixed;left:-12000px;top:0;width:794px;background:#fff;direction:ltr;font-family:'Cairo',Arial,sans-serif;color:#1b2733;font-size:12px;line-height:1.45}
+#rep .blk{padding:0 34px;background:#fff}
+#rep .hdr{background:#0d2f4f;color:#fff;padding:18px 34px 14px;display:flex;align-items:center;gap:14px}
+#rep .hdr .t1{font-size:19px;font-weight:800;line-height:1.2}
+#rep .hdr .t2{font-size:12px;opacity:.9}
+#rep .hdr .t3{font-size:12px;opacity:.85;direction:rtl}
+#rep .hdr .tag{margin-left:auto;text-align:right}
+#rep .hdr .tag div:first-child{background:#0f8b8d;font-weight:800;padding:3px 12px;border-radius:14px;font-size:13px;display:inline-block}
+#rep .hdr .tag div{font-size:11px;margin-top:4px}
+#rep h4{margin:14px 0 6px;font-size:13px;color:#0d2f4f;border-bottom:2px solid #0f8b8d;padding-bottom:3px;font-weight:800}
+#rep table{width:100%;border-collapse:collapse}
+#rep td,#rep th{border:1px solid #d5dee6;padding:4px 7px;vertical-align:top;text-align:left}
+#rep th{background:#eef4f8;font-weight:700;color:#0d2f4f}
+#rep td.k{background:#f6f9fb;font-weight:700;width:22%;color:#3a4d5f}
+#rep .rtl{direction:rtl;unicode-bidi:isolate}
+#rep .ready{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:10px;margin:8px 0}
+#rep .flagl{margin:4px 0 0;padding-left:16px}
+#rep .flagl li{margin:2px 0}
+#rep .sig{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-top:22px}
+#rep .sig div{border-top:1px solid #7b8a98;padding-top:4px;font-size:11px;color:#3a4d5f;text-align:center}
+#rep .ok{color:#1e8e4e;font-weight:800} #rep .no{color:#c62f2f;font-weight:800} #rep .ab{color:#c77700;font-weight:800}
+#rep .attimg{margin:8px 0 10px;text-align:center}
+#rep .attimg img{max-width:100%;max-height:900px;border:1px solid #d5dee6}
+#rep .attimg div{font-size:11px;color:#3a4d5f;margin-top:3px}
+#rep .ftr{font-size:10px;color:#7b8a98;text-align:center;padding:10px 34px 16px}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <div class="logo" aria-hidden="true">
+      <svg width="30" height="30" viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="6" r="3"/><path d="M16 9v5M8 14h16M8 14l-3 7M24 14l3 7M16 14v6M12 27h8M16 20l-4 7M16 20l4 7"/><circle cx="5" cy="22.5" r="1.5"/><circle cx="27" cy="22.5" r="1.5"/></svg>
+    </div>
+    <div class="titles">
+      <h1>Robotic Surgery Unit — Nasser Institute</h1>
+      <div class="sub">Nasser Institute for Research and Treatment · Urology</div>
+      <span class="sheet-tag">Preoperative Sheet</span>
+    </div>
+    <div class="sync" id="sync">Loading…</div>
+  </div>
+</header>
+
+<main class="wrap" id="app"><div class="empty" style="margin-top:20px"><b>This is only a file preview</b><div>The iPhone file preview can't run apps. Open the app from its GitHub Pages link in Safari to use it.</div></div></main>
+
+<div id="rep" aria-hidden="true"></div>
+
+<div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
+<div class="toast" id="toast"></div>
+<div class="busy" id="busy"><div class="spin"></div><div id="busyTxt">Preparing PDF…</div></div>
+<input type="file" id="fileIn" accept="image/*,application/pdf" multiple hidden>
+<input type="file" id="importIn" accept="application/json,.json" hidden>
+
+<script>
+/* =====================================================================
+   Robotic Surgery Unit — Nasser Institute · Preoperative Sheet
+   Vanilla JS, no build step. Data: private per-user db (artifact runtime)
+   with localStorage fallback/cache.
+   ===================================================================== */
+const UNIT_EN='Robotic Surgery Unit — Nasser Institute';
+const UNIT_FULL='Nasser Institute for Research and Treatment';
+const UNIT_AR='وحدة الجراحة الروبوتية — معهد ناصر للبحوث والعلاج';
+const SURGEON='Prof. Mohamed Galal Elsheikh';
+const SURGEON_AR='أ.د/ محمد جلال الشيخ';
+const CLINIC_PHONE='01020857272';
+const LS_KEY='robotic_preop_cases_v1';
+
+/* ---------------- Procedures ---------------- */
+const PROCS={
+  rarp:{en:'Robot-assisted radical prostatectomy (RARP)',ar:'استئصال البروستاتا الجذري بالروبوت',spec:'prostate',onc:1,inv:['psa','bx','mpmri','staging']},
+  rsp:{en:'Robotic simple prostatectomy',ar:'استئصال تضخم البروستاتا الحميد بالروبوت',spec:'bph',inv:['psa','trus','uroflow','pvr']},
+  rpn:{en:'Robotic partial nephrectomy (RAPN)',ar:'استئصال جزئي للكلى بالروبوت',spec:'renal',onc:1,inv:['ctmri','ctchest']},
+  rrn:{en:'Robotic radical nephrectomy',ar:'استئصال كلي للكلى بالروبوت',spec:'renal',onc:1,inv:['ctmri','ctchest']},
+  rnu:{en:'Robotic nephroureterectomy',ar:'استئصال الكلى والحالب بالروبوت',spec:'utuc',onc:1,inv:['ctu','urs','cyto','cysto','ctchest']},
+  rarc:{en:'Robotic radical cystectomy + urinary diversion (RARC)',ar:'استئصال المثانة الجذري بالروبوت مع تحويل مسار البول',spec:'bladder',onc:1,inv:['turbt','ctcap','alb']},
+  pyelo:{en:'Robotic pyeloplasty',ar:'توسيع الحوض الكلوي بالروبوت',spec:'upj',inv:['renogram','ctu']},
+  adrenal:{en:'Robotic adrenalectomy',ar:'استئصال الغدة الكظرية بالروبوت',spec:'adrenal',inv:['ctadr','metan','aldo','dst']},
+  reimp:{en:'Robotic ureteric reimplantation',ar:'إعادة زرع الحالب بالروبوت',spec:'gen',inv:['ctu','renogram']},
+  vvf:{en:'Robotic vesicovaginal fistula repair',ar:'إصلاح الناسور المثاني المهبلي بالروبوت',spec:'gen',inv:['cysto','ctu']},
+  scp:{en:'Robotic sacrocolpopexy',ar:'تثبيت المهبل بالعجز بالروبوت',spec:'gen',inv:['uroflow','pvr','uds']},
+  donor:{en:'Robotic donor nephrectomy',ar:'استئصال كلية من متبرع بالروبوت',spec:'gen',inv:['ctangio','renogram']},
+  other:{en:'Other robotic procedure',ar:'عملية روبوتية أخرى',spec:'gen',inv:[]}
+};
+
+/* ---------------- Field helpers ---------------- */
+// [key,label,type,opts]  types: t text, n number, d date, tel, s select, c checkbox, ta textarea
+const YN=['','Yes','No'];
+const SPEC={
+  prostate:{t:'Prostate cancer data',f:[
+    ['psa_v','PSA (ng/mL)','n'],['pvol','Prostate volume (mL)','n'],
+    ['gg','Biopsy ISUP grade group','s',['','1','2','3','4','5']],['gleason','Gleason score (e.g. 3+4)','t'],
+    ['corePos','Positive cores','n'],['coreTot','Total cores','n'],
+    ['ct','Clinical T stage','s',['','T1c','T2a','T2b','T2c','T3a','T3b','T4']],
+    ['pirads','mpMRI PI-RADS','s',['','1','2','3','4','5']],
+    ['mriEce','MRI: extraprostatic extension','c'],['mriSvi','MRI: seminal vesicle invasion','c'],
+    ['cn','Nodal stage','s',['','cN0','cN1']],['cm','Metastasis stage','s',['','cM0','cM1']],
+    ['stagingMod','Staging modality','s',['','PSMA PET-CT','Bone scan + CT','MRI only','Not required (low risk)']],
+    ['nerve','Nerve-sparing plan','s',['','Bilateral','Right only','Left only','Non nerve-sparing']],
+    ['plnd','Pelvic lymph node dissection','s',['','None','Standard','Extended (ePLND)']],
+    ['ipss','Baseline IPSS','n'],['iief','Baseline IIEF-5','n'],
+    ['cont','Baseline continence','s',['','Continent','Stress leakage','Incontinent']]
+  ]},
+  bph:{t:'BPH data',f:[
+    ['pvol','Prostate volume (mL)','n'],['psa_v','PSA (ng/mL)','n'],['qmax','Qmax (mL/s)','n'],['pvr_v','PVR (mL)','n'],
+    ['ipss','IPSS','n'],['cath','Indwelling catheter','c'],['retention','History of retention','c'],['bladderStone','Bladder stones / diverticulum','c']
+  ]},
+  renal:{t:'Renal mass data',f:[
+    ['tsize','Tumor size (cm)','n'],
+    ['rE','E — Exophytic','s',[['','—'],['1','≥50% exophytic (1)'],['2','<50% exophytic (2)'],['3','Entirely endophytic (3)']]],
+    ['rN','N — Nearness to collecting system','s',[['','—'],['1','≥7 mm (1)'],['2','4–7 mm (2)'],['3','≤4 mm (3)']]],
+    ['rA','A — Anterior / Posterior','s',[['','—'],['a','Anterior (a)'],['p','Posterior (p)'],['x','Neither (x)']]],
+    ['rL','L — Location vs polar lines','s',[['','—'],['1','Entirely above/below (1)'],['2','Crosses polar line (2)'],['3','>50% across / interpolar (3)']]],
+    ['rH','Hilar tumor (h)','c'],['solitary','Solitary kidney','c'],
+    ['contra','Contralateral kidney','s',['','Normal','Impaired','Absent']],
+    ['thrombus','Tumor thrombus','s',['','None','Renal vein','IVC level I','IVC level II or higher']],
+    ['ctn','Clinical stage','s',['','cT1a','cT1b','cT2a','cT2b','cT3a','cT3b','cT4']],
+    ['split','Split function of affected kidney (%)','n']
+  ]},
+  bladder:{t:'Bladder cancer data',f:[
+    ['histo','TURBT histology','s',['','Urothelial carcinoma','UC with variant histology','Squamous cell carcinoma','Adenocarcinoma','Other']],
+    ['bct','Clinical stage','s',['','cT1 high-risk / BCG-unresponsive','cT2','cT3','cT4a']],
+    ['cis','Concomitant CIS','c'],['hydro','Hydronephrosis','s',['','None','Right','Left','Bilateral']],
+    ['nac','Neoadjuvant chemotherapy','s',['','Completed','In progress','Not given — cisplatin-ineligible','Declined','Not indicated']],
+    ['nacN','NAC cycles','n'],
+    ['div','Urinary diversion','s',['','Ileal conduit','Orthotopic neobladder','Ureterocutaneostomy','Other']],
+    ['icud','Intracorporeal diversion planned','c'],['pelvicRT','Prior pelvic radiotherapy','c'],
+    ['urethra','Urethral involvement (prostatic urethra / bladder neck)','c']
+  ]},
+  utuc:{t:'Upper-tract urothelial carcinoma',f:[
+    ['uloc','Location','s',['','Renal pelvis/calyces','Proximal ureter','Mid ureter','Distal ureter','Multifocal']],
+    ['ugrade','Grade','s',['','Low grade','High grade','Not obtained']],['usize','Size (cm)','n'],
+    ['ucyto','Urine cytology','s',['','Negative','Positive','Atypical']],['ubladder','Concomitant bladder tumor','c'],
+    ['bcuff','Bladder cuff technique','s',['','Robotic extravesical','Intravesical','Endoscopic']]
+  ]},
+  upj:{t:'UPJ obstruction',f:[
+    ['split','Split function of affected kidney (%)','n'],['t12','T½ after diuretic (min)','n'],
+    ['curve','Drainage pattern','s',['','Obstructive','Equivocal','Non-obstructive']],
+    ['crossing','Crossing vessel suspected','c'],['stent','DJ stent / nephrostomy in place','c'],['redo','Redo (prior pyeloplasty)','c'],['stones','Concomitant stones','c']
+  ]},
+  adrenal:{t:'Adrenal lesion',f:[
+    ['asize','Lesion size (cm)','n'],['hu','Unenhanced CT attenuation (HU)','n'],
+    ['afunc','Functional status','s',['','Non-functioning','Pheochromocytoma','Primary aldosteronism','Cushing / autonomous cortisol','Suspected adrenocortical carcinoma']],
+    ['alpha','Alpha-blockade started','c'],['alphaDate','Alpha-blockade start date','d'],
+    ['bpOk','BP & HR controlled','c'],['kOk','Hypokalemia corrected','c'],['endo','Endocrinology consulted','c']
+  ]},
+  gen:{t:'Procedure-specific details',f:[['gdetail','Key findings / indication details','ta']]}
+};
+
+const PT_FIELDS=[
+  ['name','Patient name','t'],['mrn','Hospital no. / MRN','t'],
+  ['age','Age (years)','n'],['sex','Sex','s',['','Male','Female']],
+  ['phone','Phone / WhatsApp','tel'],['nid','National ID / Passport','t'],
+  ['payment','Payment','s',['','State-funded','Health insurance','Contract / company','Private','Other']],
+  ['payer','Payer / approval no.','t'],
+  ['surgDate','Planned surgery date','d'],['admitDate','Admission date','d'],
+  ['orOrder','OR order / start time','t'],['surgeon','Console surgeon','t'],
+  ['assistant','Bedside assistant','t'],['anesthetist','Anesthetist','t'],
+  ['referral','Referred by','t']
+];
+const DX_FIELDS=[
+  ['proc','Planned robotic procedure','s',[['','— choose —']].concat(Object.keys(PROCS).map(k=>[k,PROCS[k].en]))],
+  ['side','Side','s',['','Right','Left','Bilateral','Midline / N/A']],
+  ['approach','Approach','s',['','Transperitoneal','Retroperitoneal','Extraperitoneal']],
+  ['dx','Diagnosis','t'],['procOther','Procedure detail (if other / combined)','t'],
+  ['robotSys','Robotic platform','t'],['ports','Port plan / docking notes','t'],
+  ['estTime','Expected console time (h)','n']
+];
+const RS_FIELDS=[
+  ['priorAbd','Prior abdominal / pelvic surgery','s',['','None','Minor laparoscopic','Major laparoscopic','Open — lower abdomen','Open — upper abdomen','Multiple laparotomies']],
+  ['priorAbdD','Details (procedure, year)','t'],
+  ['mesh','Abdominal wall mesh / hernia','c'],['pelvicRT2','Prior pelvic radiotherapy','c'],
+  ['glaucoma','Glaucoma (steep Trendelenburg)','c'],['icp','Raised ICP / intracranial lesion','c'],
+  ['cvaRecent','Stroke / TIA within 3 months','c'],['vpShunt','VP shunt','c'],
+  ['aaa','Abdominal aortic aneurysm','c'],['cspine','Cervical spine / shoulder limitation','c'],
+  ['trend','Expected Trendelenburg tolerance','s',['','Good','Uncertain','Poor']],
+  ['rsNotes','Positioning / docking notes','ta']
+];
+const CM_FIELDS=[
+  ['htn','Hypertension','c'],['dm','Diabetes','s',['','None','Diet','Oral agents','Insulin']],
+  ['ihd','Ischemic heart disease','c'],['stentDate','Coronary stent date (if any)','d'],
+  ['hf','Heart failure','c'],['af','Atrial fibrillation','c'],['valve','Valvular disease / prosthetic valve','c'],
+  ['copd','COPD / asthma','c'],['osa','Known OSA','c'],['ckd','Chronic kidney disease','c'],
+  ['liver','Chronic liver disease','c'],['stroke','Previous stroke','c'],['vte','Previous DVT / PE','c'],
+  ['bleed','Bleeding disorder','c'],['smoke','Smoking','s',['','Never','Ex-smoker','Current']],
+  ['allergy','Allergies','t'],
+  ['asa','ASA class','s',['','I','II','III','IV','V']],
+  ['mets4','Can climb 2 flights of stairs (≥4 METs)','s',YN],
+  ['sbS','STOP-BANG: Snoring loudly','c'],['sbT','STOP-BANG: Tired / daytime sleepiness','c'],
+  ['sbO','STOP-BANG: Observed apnea','c'],['sbN','STOP-BANG: Neck > 40 cm','c'],
+  ['cmNotes','Other medical history','ta']
+];
+const ANTICOAG=[
+  ['','None'],['aspirin','Aspirin'],['clopidogrel','Clopidogrel'],['ticagrelor','Ticagrelor'],['prasugrel','Prasugrel'],
+  ['dapt','Dual antiplatelet (DAPT)'],['warfarin','Warfarin'],['apixaban','Apixaban'],['rivaroxaban','Rivaroxaban'],
+  ['edoxaban','Edoxaban'],['dabigatran','Dabigatran'],['lmwh','Therapeutic LMWH']
+];
+const MED_FIELDS=[
+  ['anticoag','Antiplatelet / anticoagulant','s',ANTICOAG],
+  ['acStop','Last dose date (planned)','d'],
+  ['bridge','Bridging required','c'],['acCleared','Stop plan agreed with cardiology / anesthesia','c'],
+  ['sglt2','SGLT2 inhibitor (empagliflozin, dapagliflozin…)','c'],['metformin','Metformin','c'],
+  ['insulin','Insulin','c'],['glp1','GLP-1 agonist (semaglutide, liraglutide…)','c'],
+  ['acei','ACE inhibitor / ARB','c'],['bblock','Beta-blocker','c'],['steroid','Chronic steroids','c'],
+  ['herbal','Herbal / supplements','c'],['medList','Full medication list','ta']
+];
+const MED_GUIDE={
+  aspirin:'Aspirin: primary prevention → stop 5–7 days pre-op; secondary prevention / stent → usually continue (cardiology decision).',
+  clopidogrel:'Clopidogrel: stop 5 days pre-op (cardiology approval if stent).',
+  ticagrelor:'Ticagrelor: stop 3–5 days pre-op (cardiology approval if stent).',
+  prasugrel:'Prasugrel: stop 7 days pre-op (cardiology approval).',
+  dapt:'DAPT: do NOT stop without cardiology — elective surgery usually deferred until DAPT period is complete.',
+  warfarin:'Warfarin: stop 5 days pre-op, INR < 1.5 the day before; bridge only if high thrombotic risk (mechanical valve, recent VTE).',
+  apixaban:'Apixaban: high-bleeding-risk surgery → last dose ≥ 48 h pre-op (longer if impaired renal function).',
+  rivaroxaban:'Rivaroxaban: high-bleeding-risk surgery → last dose ≥ 48 h pre-op (longer if CrCl < 30).',
+  edoxaban:'Edoxaban: high-bleeding-risk surgery → last dose ≥ 48 h pre-op.',
+  dabigatran:'Dabigatran: CrCl ≥ 50 → stop 48 h; CrCl 30–49 → stop 96 h pre-op.',
+  lmwh:'Therapeutic LMWH: last dose 24 h pre-op (half daily dose).'
+};
+const MED_GUIDE_AR={
+  aspirin:'الأسبرين: يُوقف قبل العملية بـ ٥–٧ أيام (إلا إذا كان بعد دعامة — حسب رأي طبيب القلب)',
+  clopidogrel:'بلافيكس (كلوبيدوجريل): يُوقف قبل العملية بـ ٥ أيام بعد موافقة طبيب القلب',
+  ticagrelor:'بريلينتا (تيكاجريلور): يُوقف قبل العملية بـ ٣–٥ أيام بعد موافقة طبيب القلب',
+  prasugrel:'إيفينت (براسوجريل): يُوقف قبل العملية بـ ٧ أيام بعد موافقة طبيب القلب',
+  dapt:'أدوية السيولة المزدوجة: لا تُوقف إلا بقرار طبيب القلب',
+  warfarin:'الماريفان (وارفارين): يُوقف قبل العملية بـ ٥ أيام مع تحليل INR قبل العملية بيوم',
+  apixaban:'إليكويس (أبيكسابان): آخر جرعة قبل العملية بـ ٤٨ ساعة على الأقل',
+  rivaroxaban:'زاريلتو (ريفاروكسابان): آخر جرعة قبل العملية بـ ٤٨ ساعة على الأقل',
+  edoxaban:'ليكسيانا (إيدوكسابان): آخر جرعة قبل العملية بـ ٤٨ ساعة على الأقل',
+  dabigatran:'براداكسا (دابيجاتران): يُوقف قبل العملية بـ ٢–٤ أيام حسب وظائف الكلى',
+  lmwh:'حقن السيولة (كليكسان) العلاجية: آخر جرعة قبل العملية بـ ٢٤ ساعة'
+};
+
+/* ---------------- Investigations ---------------- */
+// key: [label, unit/num?, ttl days, group]
+const INV={
+  hb:['Hemoglobin','g/dL',30,'lab'],plt:['Platelets','×10³/µL',30,'lab'],wbc:['WBC','×10³/µL',30,'lab'],
+  inr:['PT / INR','INR',30,'lab'],ptt:['aPTT','sec',30,'lab'],
+  creat:['Serum creatinine','mg/dL',30,'lab'],urea:['Urea','mg/dL',30,'lab'],
+  na:['Sodium','mmol/L',30,'lab'],k:['Potassium','mmol/L',30,'lab'],
+  lft:['Liver function (ALT/AST/bilirubin)','',30,'lab'],alb:['Serum albumin','g/dL',30,'lab'],
+  rbs:['Blood glucose (FBS/RBS)','mg/dL',30,'lab'],hba1c:['HbA1c','%',90,'lab'],
+  ua:['Urinalysis','',30,'lab'],uc:['Urine culture & sensitivity','',30,'lab'],
+  bg:['Blood group & Rh','',3650,'lab'],viral:['Viral markers (HBsAg, HCV Ab, HIV)','',180,'lab'],
+  ecg:['ECG','',90,'card'],echo:['Echocardiography (EF %)','%',365,'card'],cxr:['Chest X-ray','',180,'img'],pft:['Pulmonary function tests','',180,'card'],
+  psa:['Total PSA','ng/mL',180,'proc'],bx:['Prostate biopsy pathology','',365,'proc'],mpmri:['mpMRI prostate','',180,'img'],
+  staging:['Staging: PSMA PET-CT / bone scan','',90,'img'],trus:['TRUS / prostate volume','',365,'img'],
+  uroflow:['Uroflowmetry','',180,'proc'],pvr:['Post-void residual (US)','',180,'img'],uds:['Urodynamic study','',365,'proc'],
+  ctmri:['CT / MRI abdomen with contrast','',90,'img'],ctchest:['CT chest (staging)','',90,'img'],
+  ctu:['CT urography','',90,'img'],urs:['Ureteroscopy ± biopsy','',180,'proc'],cyto:['Urine cytology','',90,'lab'],
+  cysto:['Cystoscopy','',180,'proc'],turbt:['TURBT pathology','',180,'proc'],ctcap:['CT chest / abdomen / pelvis','',90,'img'],
+  renogram:['Renogram (MAG3 / DTPA)','',365,'img'],ctadr:['CT adrenal protocol','',180,'img'],
+  metan:['Plasma / urine metanephrines','',180,'lab'],aldo:['Aldosterone / renin ratio','',180,'lab'],
+  dst:['1 mg dexamethasone suppression test','',180,'lab'],ctangio:['CT angiography (renal vessels)','',180,'img']
+};
+const INV_NUM=['hb','plt','wbc','inr','ptt','creat','urea','na','k','alb','rbs','hba1c','echo','psa'];
+const BASE_INV=['hb','plt','wbc','inr','ptt','creat','urea','na','k','lft','rbs','ua','uc','bg','viral','ecg','cxr'];
+const ST_OPTS=[['','—'],['req','Requested'],['norm','Normal'],['abn','Abnormal']];
+
+/* ---------------- Checklist ---------------- */
+const CL=[
+  ['consent','Informed consent signed (robotic surgery & possible conversion to open)',()=>1],
+  ['consentMedia','Consent for video recording / photography',()=>0],
+  ['anesth','Pre-anesthesia assessment completed',()=>1],
+  ['cardio','Cardiology clearance',c=>isCardiac(c)],
+  ['pulm','Chest / pulmonary consultation',c=>!!c.f.copd],
+  ['mdt','Discussed in MDT / tumor board',c=>!!(PROCS[c.f.proc]||{}).onc],
+  ['fin','Financial / insurance approval obtained',()=>1],
+  ['slot','Robot OR slot booked',()=>1],
+  ['consum','Robotic instruments & consumables confirmed',()=>1],
+  ['blood','Blood reserved / crossmatched',()=>1],
+  ['icu','ICU / HDU bed reserved',c=>c.f.proc==='rarc'||c.f.asa==='III'||c.f.asa==='IV'||c.f.afunc==='Pheochromocytoma'],
+  ['edu','Patient education (ERAS, early mobilization, spirometry)',()=>1],
+  ['pfmt','Pelvic floor muscle training started',c=>c.f.proc==='rarp'],
+  ['stoma','Stoma site marked',c=>c.f.proc==='rarc'&&(c.f.div==='Ileal conduit'||c.f.div==='Ureterocutaneostomy')],
+  ['bowel','Bowel preparation / ERAS nutrition plan',c=>c.f.proc==='rarc'],
+  ['alphaCl','Alpha-blockade ≥ 10–14 days completed',c=>c.f.afunc==='Pheochromocytoma'],
+  ['steroidCl','Perioperative steroid cover planned',c=>!!c.f.steroid||c.f.afunc==='Cushing / autonomous cortisol'],
+  ['medsCl','Medication stop instructions given to patient',c=>!!(c.f.anticoag||c.f.sglt2||c.f.metformin||c.f.insulin||c.f.glp1)],
+  ['fasting','Fasting instructions given',()=>1],
+  ['vteCl','VTE prophylaxis plan (LMWH ± stockings / IPC)',()=>1],
+  ['abx','Antibiotic prophylaxis plan',()=>1],
+  ['smokeCl','Smoking cessation advised',c=>c.f.smoke==='Current'],
+  ['admit','Admission arranged',()=>1]
+];
+
+/* ---------------- State ---------------- */
+let cases={};           // id -> case
+let view={screen:'list',id:null,tab:'pt',q:'',filter:'all',showAllInv:false};
+let DB=null,UID=null,ASSETS=null,DL=null,cloud='init';
+/* ---- On-device file store (IndexedDB) used when the cloud asset store is unavailable, e.g. on GitHub Pages ---- */
+const LURL={};
+const IDB={
+  db:null,
+  open(){if(this.db)return Promise.resolve(this.db);return new Promise((res,rej)=>{try{const r=indexedDB.open('robotic_preop_files',1);r.onupgradeneeded=()=>r.result.createObjectStore('f');r.onsuccess=()=>{this.db=r.result;res(this.db)};r.onerror=()=>rej(r.error)}catch(e){rej(e)}})},
+  async put(k,b){const d=await this.open();return new Promise((res,rej)=>{const t=d.transaction('f','readwrite');t.objectStore('f').put(b,k);t.oncomplete=res;t.onerror=()=>rej(t.error)})},
+  async get(k){const d=await this.open();return new Promise((res,rej)=>{const r=d.transaction('f').objectStore('f').get(k);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})},
+  async del(k){const d=await this.open();return new Promise(res=>{const t=d.transaction('f','readwrite');t.objectStore('f').delete(k);t.oncomplete=res;t.onerror=res})}
+};
+let IDB_OK=typeof indexedDB!=='undefined';
+const isLocal=id=>String(id).startsWith('L_');
+function attSrc(id){return isLocal(id)?(LURL[id]||''):'/_blob/'+id}
+async function loadLocal(id){if(!isLocal(id)||LURL[id])return LURL[id];try{const b=await IDB.get(id);if(b)LURL[id]=URL.createObjectURL(b)}catch(e){}return LURL[id]}
+async function fillLocalImgs(root){for(const im of (root||document).querySelectorAll('img[data-lid]')){const u=await loadLocal(im.dataset.lid);if(u&&im.getAttribute('src')!==u)im.src=u}}
+async function delAtt(id){if(isLocal(id)){try{await IDB.del(id)}catch(e){}if(LURL[id]){URL.revokeObjectURL(LURL[id]);delete LURL[id]}}else if(ASSETS){try{await ASSETS.delete(id)}catch(e){}}}
+const writeQ={};        // per-doc write coalescing
+
+function uid(){return 'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function newCase(){
+  const c={id:uid(),created:Date.now(),updated:Date.now(),f:{surgeon:SURGEON},inv:{},cl:{},att:[]};
+  cases[c.id]=c;persist(c);return c;
+}
+function norm(c){c.f=c.f||{};c.inv=c.inv||{};c.cl=c.cl||{};c.att=c.att||[];return c}
+
+/* ---------------- Persistence ---------------- */
+function lsSave(){try{localStorage.setItem(LS_KEY,JSON.stringify(cases))}catch(e){}}
+function lsLoad(){try{const s=localStorage.getItem(LS_KEY);if(s){const o=JSON.parse(s);for(const k in o)cases[k]=norm(o[k])}}catch(e){}}
+let lsT=null;
+function persist(c,immediate){
+  c.updated=Date.now();
+  clearTimeout(lsT);lsT=setTimeout(lsSave,250);
+  if(DB&&UID)queueWrite(c.id,immediate?0:900);
+}
+function queueWrite(id,delay){
+  const q=writeQ[id]||(writeQ[id]={t:null,busy:false,again:false});
+  clearTimeout(q.t);
+  q.t=setTimeout(()=>flushWrite(id),delay);
+}
+async function flushWrite(id){
+  const q=writeQ[id];if(!q)return;
+  if(q.busy){q.again=true;return}
+  const c=cases[id];if(!c)return;
+  q.busy=true;setSync('saving');
+  try{
+    await DB.collection('data/users/'+UID).doc(id).set(JSON.parse(JSON.stringify(c)));
+    setSync('ok');
+  }catch(e){
+    if(e&&e.code==='unavailable'){setTimeout(()=>queueWrite(id,0),1500+Math.random()*1000)}
+    else if(e&&e.code==='quota_exceeded'){toast('Storage full — delete old cases');setSync('local')}
+    else setSync('local');
+  }
+  q.busy=false;
+  if(q.again){q.again=false;queueWrite(id,200)}
+}
+async function removeCase(id){
+  const c=cases[id];delete cases[id];lsSave();
+  if(DB&&UID){try{await DB.collection('data/users/'+UID).doc(id).delete()}catch(e){}}
+  if(c){for(const a of c.att||[])await delAtt(a.id)}
+}
+function setSync(s){
+  cloud=s;const el=document.getElementById('sync');
+  el.textContent={init:'Loading…',ok:'☁︎ Saved',saving:'⟳ Saving…',local:'Saved on this device only'}[s]||'';
+}
+async function initCloud(){
+  if(!window.claude||typeof window.claude.use!=='function'){setSync('local');return}
+  try{
+    const [db,user]=await Promise.all([claude.use('db'),claude.use('user')]);
+    claude.use('assets').then(a=>{ASSETS=a;if(view.tab==='att')render()}).catch(()=>{});
+    claude.use('downloads').then(d=>{DL=d}).catch(()=>{});
+    if(!db||!user){setSync('local');return}
+    const id=await user.id();
+    if(!id){setSync('local');return}
+    DB=db;UID=id;
+    const snap=await DB.collection('data/users/'+UID).get();
+    const remoteIds=new Set();
+    snap.docs.forEach(d=>{
+      if(!d.exists)return;const r=norm(JSON.parse(JSON.stringify(d.data())));remoteIds.add(d.id);
+      const l=cases[d.id];
+      if(!l||(r.updated||0)>(l.updated||0))cases[d.id]=r;
+    });
+    lsSave();
+    // push local-only or newer local cases
+    for(const k in cases){
+      const remote=snap.docs.find(d=>d.id===k);
+      const rUpd=remote&&remote.exists?(remote.data().updated||0):-1;
+      if(!remoteIds.has(k)||(cases[k].updated||0)>rUpd)queueWrite(k,50);
+    }
+    setSync('ok');render();
+  }catch(e){setSync('local')}
+}
+
+/* ---------------- Calculations ---------------- */
+const toLatin=v=>String(v??'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٫,]/g,'.');
+const num=v=>{const x=parseFloat(toLatin(v));return isFinite(x)?x:null};
+function bmi(c){const w=num(c.f.wt),h=num(c.f.ht);if(!w||!h)return null;return w/Math.pow(h/100,2)}
+function egfr(c){
+  const s=num(c.inv.creat&&c.inv.creat.val),a=num(c.f.age),fem=c.f.sex==='Female';
+  if(!s||!a||!c.f.sex)return null;
+  const k=fem?0.7:0.9,al=fem?-0.241:-0.302;
+  return 142*Math.pow(Math.min(s/k,1),al)*Math.pow(Math.max(s/k,1),-1.2)*Math.pow(0.9938,a)*(fem?1.012:1);
+}
+function renal(c){
+  const sz=num(c.f.tsize);if(!sz||!c.f.rE||!c.f.rN||!c.f.rL)return null;
+  const R=sz<=4?1:sz<7?2:3;const tot=R+(+c.f.rE)+(+c.f.rN)+(+c.f.rL);
+  return {score:tot+(c.f.rA||'')+(c.f.rH?'h':''),tot,cx:tot<=6?'Low complexity':tot<=9?'Moderate complexity':'High complexity'};
+}
+function nccn(c){
+  const psa=num(c.f.psa_v)??num(c.inv.psa&&c.inv.psa.val),gg=+c.f.gg||0,t=c.f.ct||'';
+  if(psa==null&&!gg&&!t)return null;
+  if(c.f.cn==='cN1'||c.f.cm==='cM1')return 'Regional / metastatic';
+  if(t==='T3b'||t==='T4')return 'Very high';
+  if(t==='T3a'||gg>=4||(psa!=null&&psa>20))return 'High';
+  let irf=0;if(t==='T2b'||t==='T2c')irf++;if(gg===2||gg===3)irf++;if(psa!=null&&psa>=10)irf++;
+  if(!irf)return gg===1&&psa!=null&&psa<10?'Low':'Low (incomplete data)';
+  const cp=num(c.f.corePos),ct=num(c.f.coreTot);const pct=cp!=null&&ct?cp/ct:0;
+  return (irf>=2||gg===3||pct>=0.5)?'Intermediate — unfavorable':'Intermediate — favorable';
+}
+function stopbang(c){
+  const b=bmi(c),a=num(c.f.age);
+  const items=[!!c.f.sbS,!!c.f.sbT,!!c.f.sbO,!!c.f.htn,b!=null&&b>35,a!=null&&a>50,!!c.f.sbN,c.f.sex==='Male'];
+  const s=items.filter(Boolean).length;return {s,risk:s>=5?'High':s>=3?'Intermediate':'Low'};
+}
+function isCardiac(c){return !!(c.f.ihd||c.f.hf||c.f.af||c.f.valve||c.f.stentDate)}
+function daysBetween(a,b){return Math.round((b-a)/864e5)}
+function refDate(c){const d=c.f.surgDate?new Date(c.f.surgDate):new Date();return isNaN(d)?new Date():d}
+
+function requiredInv(c){
+  const r=[...BASE_INV];
+  if(c.f.dm&&c.f.dm!=='None')r.push('hba1c');
+  const a=num(c.f.age);
+  if(isCardiac(c)||(a!=null&&a>=65)||c.f.mets4==='No')r.push('echo');
+  if(c.f.copd)r.push('pft');
+  const p=PROCS[c.f.proc];
+  if(p)p.inv.forEach(k=>{if(!r.includes(k))r.push(k)});
+  // conditional: staging for RARP only when not low risk
+  if(c.f.proc==='rarp'){const g=nccn(c);if(g&&g.startsWith('Low')&&c.f.stagingMod==='Not required (low risk)')r.splice(r.indexOf('staging'),1)}
+  return r;
+}
+function invDone(e){return !!e&&(e.st==='norm'||e.st==='abn'||(e.val!=null&&String(e.val).trim()!==''))}
+function invStale(c,k){
+  const e=c.inv[k];if(!e||!e.dt)return false;
+  const d=new Date(e.dt);if(isNaN(d))return false;
+  return daysBetween(d,refDate(c))>INV[k][2];
+}
+function invAbn(c,k){
+  const e=c.inv[k]||{};if(e.st==='abn')return true;
+  const v=num(e.val);if(v==null)return false;
+  const L={hb:[c.f.sex==='Female'?12:13,null],plt:[150,450],inr:[null,1.3],k:[3.5,5.2],na:[135,145],creat:[null,c.f.sex==='Female'?1.1:1.3],alb:[3.5,null],rbs:[null,200],hba1c:[null,7],echo:[50,null],wbc:[4,11]}[k];
+  if(!L)return false;return (L[0]!=null&&v<L[0])||(L[1]!=null&&v>L[1]);
+}
+
+/* ---------------- Analysis: flags + readiness ---------------- */
+function analyze(c){
+  const F=[];const f=c.f;const add=(l,m)=>F.push({l,m});
+  const iv=k=>num(c.inv[k]&&c.inv[k].val);
+  // labs
+  const hb=iv('hb');if(hb!=null){if(hb<8)add('crit',`Hemoglobin ${hb} g/dL — correct before surgery`);else if(hb<10)add('warn',`Anemia: Hb ${hb} g/dL — consider iron / transfusion plan`)}
+  const pl=iv('plt');if(pl!=null){if(pl<50)add('crit',`Platelets ${pl} ×10³ — not safe for surgery`);else if(pl<100)add('warn',`Thrombocytopenia: platelets ${pl} ×10³`)}
+  const inr=iv('inr');if(inr!=null&&inr>1.5)add(inr>1.8?'crit':'warn',`INR ${inr} — must be < 1.5 before surgery`);
+  const k=iv('k');if(k!=null){if(k<3||k>6)add('crit',`Potassium ${k} mmol/L — correct before surgery`);else if(k<3.5||k>5.5)add('warn',`Potassium ${k} mmol/L`)}
+  const na=iv('na');if(na!=null&&(na<130||na>150))add('warn',`Sodium ${na} mmol/L`);
+  const eg=egfr(c);if(eg!=null){if(eg<15)add('crit',`eGFR ${eg.toFixed(0)} — kidney failure; nephrology input`);else if(eg<30)add('warn',`eGFR ${eg.toFixed(0)} mL/min/1.73m² — renal protection, dose-adjust drugs`);else if(eg<60&&(f.proc==='rpn'||f.proc==='rrn'||f.proc==='rnu'))add('info',`Baseline eGFR ${eg.toFixed(0)} — consider nephron-sparing / post-op CKD risk`)}
+  const a1=iv('hba1c');if(a1!=null&&a1>8.5)add('warn',`HbA1c ${a1}% — poor glycemic control; optimize before elective surgery`);
+  const gl=iv('rbs');if(gl!=null&&gl>250)add('warn',`Blood glucose ${gl} mg/dL`);
+  const al=iv('alb');if(al!=null&&al<3.5)add(al<3?'warn':'info',`Albumin ${al} g/dL — nutritional optimization`);
+  const ef=iv('echo');if(ef!=null){if(ef<30)add('crit',`EF ${ef}% — cardiology / anesthesia review mandatory`);else if(ef<40)add('warn',`Reduced EF ${ef}% — limited tolerance to pneumoperitoneum & Trendelenburg`)}
+  const uc=c.inv.uc;if(uc&&uc.st==='abn')add('crit','Positive urine culture — treat per sensitivity and repeat culture before surgery');
+  // general
+  const b=bmi(c);if(b!=null){if(b>=40)add('warn',`BMI ${b.toFixed(1)} — morbid obesity: port placement, ventilation, positioning`);else if(b>=35)add('info',`BMI ${b.toFixed(1)}`)}
+  const age=num(f.age);if(age!=null&&age>=75)add('info',`Age ${age} — frailty / cognitive assessment`);
+  if(f.asa==='IV'||f.asa==='V')add('crit',`ASA ${f.asa} — reconsider suitability for elective robotic surgery`);
+  else if(f.asa==='III')add('info','ASA III — HDU monitoring may be needed');
+  const sb=stopbang(c);if(sb.s>=5&&!f.osa)add('warn',`STOP-BANG ${sb.s}/8 — high OSA risk; inform anesthesia`);
+  if(f.mets4==='No')add('warn','Poor functional capacity (< 4 METs) — cardiac evaluation');
+  // robotic suitability
+  if(f.icp)add('crit','Raised ICP — steep Trendelenburg & pneumoperitoneum contraindicated');
+  if(f.cvaRecent)add('crit','Stroke / TIA within 3 months — defer elective surgery');
+  if(f.glaucoma)add('warn','Glaucoma — steep Trendelenburg raises IOP; ophthalmology clearance, limit duration');
+  if(f.vpShunt)add('warn','VP shunt — neurosurgery input before pneumoperitoneum');
+  if(f.aaa)add('warn','AAA — caution with access and pneumoperitoneum');
+  if(f.cspine)add('info','Neck / shoulder limitation — padding & positioning check');
+  if(f.trend==='Poor')add('warn','Poor expected Trendelenburg tolerance — anesthesia plan');
+  if(/Open|Multiple/.test(f.priorAbd||''))add('warn',`Prior ${f.priorAbd.toLowerCase()} surgery — adhesions: plan Palmer's point / open access, port placement`);
+  if(f.pelvicRT2||f.pelvicRT)add('warn','Prior pelvic radiotherapy — difficult planes, higher complication risk');
+  if(f.mesh)add('info','Abdominal wall mesh — adjust port sites');
+  if(f.copd)add('info','COPD/asthma — CO₂ retention risk with pneumoperitoneum');
+  // meds
+  if(f.anticoag){
+    if(f.anticoag==='dapt')add('crit','On DAPT — surgery requires cardiology decision');
+    else if(!f.acCleared)add('warn','Antithrombotic stop plan not yet confirmed');
+    if(f.anticoag==='warfarin'&&inr!=null&&inr>=1.5)add('warn','Warfarin: recheck INR day before surgery');
+  }
+  if(f.stentDate){const d=daysBetween(new Date(f.stentDate),refDate(c));if(d>=0&&d<180)add('crit',`Coronary stent ${d} days ago — elective surgery generally deferred; cardiology`);else if(d>=0&&d<365)add('warn',`Coronary stent ${Math.round(d/30)} months ago — cardiology clearance`)}
+  if(f.sglt2)add('info','SGLT2 inhibitor — stop 3 days pre-op (euglycemic ketoacidosis risk)');
+  if(f.glp1)add('info','GLP-1 agonist — aspiration risk; follow anesthesia hold / liquid-diet protocol');
+  if(f.steroid)add('info','Chronic steroids — perioperative stress-dose cover');
+  // procedure-specific
+  if(f.proc==='rarp'){
+    const g=nccn(c);
+    if(g&&/High|Very|Regional/.test(g)&&!invDone(c.inv.staging))add('warn',`${g} risk prostate cancer — PSMA PET / staging needed`);
+    if(f.cm==='cM1')add('crit','cM1 disease — radical prostatectomy outside standard indication; MDT');
+    if(f.mriSvi)add('info','MRI SVI — plan wide excision, non nerve-sparing side');
+  }
+  if(f.proc==='rpn'||f.proc==='rrn'){
+    if(f.solitary)add('warn','Solitary kidney — renal protection, short warm ischemia / zero-ischemia');
+    const r=renal(c);if(r&&r.tot>=10&&f.proc==='rpn')add('warn',`R.E.N.A.L. ${r.score} — high complexity partial nephrectomy`);
+    if(f.thrombus&&/IVC/.test(f.thrombus))add('warn',`Tumor thrombus ${f.thrombus} — vascular / cardiac surgery backup`);
+  }
+  if(f.proc==='rarc'){
+    if(/cT2|cT3|cT4/.test(f.bct||'')&&(!f.nac||f.nac==='Not indicated'))add('info','MIBC — confirm cisplatin-based neoadjuvant chemotherapy discussed');
+    if(f.div==='Orthotopic neobladder'&&f.urethra)add('warn','Urethral involvement — neobladder may be contraindicated');
+  }
+  if(f.proc==='adrenal'&&f.afunc==='Pheochromocytoma'&&!f.alpha)add('crit','Pheochromocytoma without alpha-blockade — do not operate');
+  if(f.proc==='adrenal'&&f.afunc==='Primary aldosteronism'&&!f.kOk)add('warn','Correct hypokalemia before adrenalectomy');
+  if(f.proc==='adrenal'&&/carcinoma/.test(f.afunc||''))add('warn','Suspected ACC — reconsider minimally invasive approach (open preferred for large/invasive)');
+
+  // required items
+  const req=requiredInv(c);const missing=[];const stale=[];let done=0,total=0;
+  req.forEach(k=>{total++;if(invDone(c.inv[k])){done++;if(invStale(c,k))stale.push(k)}else missing.push(k)});
+  const clReq=CL.filter(x=>x[2](c));const clMissing=[];
+  clReq.forEach(x=>{total++;if(c.cl[x[0]])done++;else clMissing.push(x[0])});
+  // basic data
+  const basics=[['name','Patient name'],['age','Age'],['sex','Sex'],['proc','Procedure'],['surgDate','Surgery date'],['asa','ASA class']];
+  const bMiss=[];basics.forEach(([k,l])=>{total++;if(f[k])done++;else bMiss.push(l)});
+  stale.forEach(k=>add('warn',`${INV[k][0]} is outdated (> ${INV[k][2]} days before surgery) — repeat`));
+  if(f.surgDate){const d=daysBetween(new Date(),new Date(f.surgDate));if(d<0)add('info','Surgery date has passed')}
+  const pct=total?Math.round(done/total*100):0;
+  const crit=F.some(x=>x.l==='crit');
+  const status=crit?{k:'bad',t:'Not fit / on hold',ar:'غير جاهز / متوقف'}:(missing.length||clMissing.length||bMiss.length||stale.length)?{k:'warn',t:'In preparation',ar:'قيد التجهيز'}:{k:'ok',t:'Ready for surgery',ar:'جاهز للعملية'};
+  const ord={crit:0,warn:1,info:2};F.sort((a,b)=>ord[a.l]-ord[b.l]);
+  return {flags:F,missing,stale,clMissing,bMiss,pct,status,req,clReq};
+}
+
+/* ---------------- Rendering utils ---------------- */
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const $=s=>document.querySelector(s);
+function optList(o){return o.map(x=>Array.isArray(x)?x:[x,x||'—'])}
+function fieldHTML(c,d,wide){
+  const [k,l,t,o]=d;const v=c.f[k];const isW=wide||t==='ta';
+  if(t==='c')return `<label class="chk ${v?'on':''}"><span>${esc(l)}</span><input type="checkbox" data-k="${k}" ${v?'checked':''}></label>`;
+  let inner='';
+  if(t==='s')inner=`<select class="inp ltr" data-k="${k}">${optList(o).map(([a,b])=>`<option value="${esc(a)}" ${String(v??'')===String(a)?'selected':''}>${esc(b)}</option>`).join('')}</select>`;
+  else if(t==='ta')inner=`<textarea class="inp" dir="auto" data-k="${k}">${esc(v)}</textarea>`;
+  else{
+    const ty=t==='d'?'date':t==='tel'?'tel':'text';
+    inner=`<input class="inp ${t==='n'||t==='d'||t==='tel'?'ltr':''}" dir="${t==='t'?'auto':'ltr'}" type="${ty}" ${t==='n'?'inputmode="decimal" data-num="1" autocomplete="off"':''} data-k="${k}" value="${esc(v)}">`;
+  }
+  return `<div class="fld ${isW?'wide':''}"><label>${esc(l)}</label>${inner}</div>`;
+}
+function grid(c,arr){return `<div class="grid">${arr.map(d=>fieldHTML(c,d)).join('')}</div>`}
+function stChip(s){return `<span class="st ${s.k}">${s.t}</span>`}
+function ring(p,k){
+  const col={ok:'#1e8e4e',warn:'#c77700',bad:'#c62f2f'}[k];const r=22,C=2*Math.PI*r;
+  return `<svg class="ring" viewBox="0 0 54 54"><circle cx="27" cy="27" r="${r}" fill="none" stroke="#e8eef3" stroke-width="6"/><circle cx="27" cy="27" r="${r}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${C*p/100} ${C}" transform="rotate(-90 27 27)"/><text x="27" y="31" text-anchor="middle" font-size="12" font-weight="800" fill="#0d2f4f" font-family="Cairo">${p}%</text></svg>`;
+}
+const fmtD=d=>{if(!d)return '';const x=new Date(d);if(isNaN(x))return d;return x.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})};
+
+/* ---------------- Screens ---------------- */
+function render(){
+  const app=$('#app');
+  if(view.screen==='case'&&cases[view.id])app.innerHTML=caseScreen(cases[view.id]);
+  else{view.screen='list';app.innerHTML=listScreen()}
+  afterRender();
+}
+function listScreen(){
+  const all=Object.values(cases);
+  const an=all.map(c=>({c,a:analyze(c)}));
+  const today=new Date();today.setHours(0,0,0,0);
+  const up=an.filter(x=>x.c.f.surgDate&&new Date(x.c.f.surgDate)>=today);
+  const wk=up.filter(x=>daysBetween(today,new Date(x.c.f.surgDate))<=7);
+  let rows=an;
+  const q=view.q.trim().toLowerCase();
+  if(q)rows=rows.filter(x=>[x.c.f.name,x.c.f.mrn,x.c.f.phone,(PROCS[x.c.f.proc]||{}).en].join(' ').toLowerCase().includes(q));
+  if(view.filter==='ok'||view.filter==='warn'||view.filter==='bad')rows=rows.filter(x=>x.a.status.k===view.filter);
+  if(view.filter==='week')rows=rows.filter(x=>wk.includes(x));
+  rows.sort((a,b)=>{const da=a.c.f.surgDate||'9999',db=b.c.f.surgDate||'9999';return da<db?-1:da>db?1:b.c.updated-a.c.updated});
+  const chip=(k,t)=>`<button class="chip ${view.filter===k?'on':''}" data-filter="${k}">${t}</button>`;
+  let body='';
+  if(!all.length)body=`<div class="empty"><div style="font-size:40px">🤖</div><b>No cases yet</b><div>Tap “New case” to start preparing your first robotic surgery patient</div></div>`;
+  else if(!rows.length)body=`<div class="empty">No matching cases</div>`;
+  else{
+    let lastW='';
+    body='<div class="list">'+rows.map(({c,a})=>{
+      let head='';
+      if(c.f.surgDate){const d=new Date(c.f.surgDate);const w=weekLabel(d);if(w!==lastW){lastW=w;head=`<div class="wkhead">${w}</div>`}}
+      else if(lastW!=='none'){lastW='none';head=`<div class="wkhead">No surgery date</div>`}
+      const col={ok:'#1e8e4e',warn:'#c77700',bad:'#c62f2f'}[a.status.k];
+      return head+`<div class="case" data-open="${c.id}">
+        <div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span class="nm" dir="auto">${esc(c.f.name||'Unnamed patient')}</span>${stChip(a.status)}</div>
+        <div class="pr">${esc((PROCS[c.f.proc]||{}).en||'— procedure not set —')}${c.f.side&&c.f.side!=='Midline / N/A'?' · '+esc(c.f.side):''}</div>
+        <div class="meta"><span>📅 ${c.f.surgDate?fmtD(c.f.surgDate):'—'}</span>${c.f.age?`<span>${esc(c.f.age)} y</span>`:''}${c.f.mrn?`<span class="en">#${esc(c.f.mrn)}</span>`:''}${a.flags.filter(x=>x.l==='crit').length?`<span style="color:var(--bad);font-weight:700">⚠ ${a.flags.filter(x=>x.l==='crit').length}</span>`:''}${(c.att||[]).length?`<span>📎 ${(c.att||[]).length}</span>`:''}</div>
+        <div class="prog"><i style="width:${a.pct}%;background:${col}"></i></div>
+      </div>`}).join('')+'</div>';
+  }
+  return `
+  <div class="stats">
+    <div class="stat"><b>${all.length}</b><span>Total cases</span></div>
+    <div class="stat"><b>${wk.length}</b><span>Surgeries in 7 days</span></div>
+    <div class="stat"><b style="color:var(--ok)">${an.filter(x=>x.a.status.k==='ok').length}</b><span>Ready</span></div>
+    <div class="stat"><b style="color:var(--bad)">${an.filter(x=>x.a.status.k==='bad').length}</b><span>On hold / not fit</span></div>
+  </div>
+  <div class="bar">
+    <button class="btn pri" data-act="new">＋ New case</button>
+    <input class="search" id="q" placeholder="Search name / MRN / procedure" value="${esc(view.q)}">
+  </div>
+  <div class="bar chips">${chip('all','All')}${chip('week','Next 7 days')}${chip('warn','In preparation')}${chip('ok','Ready')}${chip('bad','On hold')}</div>
+  ${body}
+  <div class="bar" style="margin-top:18px">
+    <button class="btn sm" data-act="export">⬇︎ Backup (JSON)</button>
+    <button class="btn sm" data-act="import">⬆︎ Import backup</button>
+  </div>
+  <div class="foot">${UNIT_EN} · ${SURGEON}</div>`;
+}
+function weekLabel(d){
+  const today=new Date();today.setHours(0,0,0,0);const x=new Date(d);x.setHours(0,0,0,0);
+  const diff=daysBetween(today,x);
+  if(diff<0)return 'Past surgeries';
+  const mon=new Date(x);mon.setDate(x.getDate()-((x.getDay()+1)%7)); // week starts Saturday
+  return 'Week of '+mon.toLocaleDateString('en-GB',{day:'numeric',month:'long'});
+}
+
+const TABS=[['pt','Patient'],['dx','Diagnosis & procedure'],['rs','Robotic suitability'],['cm','Comorbidities'],['med','Medications'],['inv','Investigations'],['att','X-rays & labs 📎'],['cl','Consents & logistics'],['sum','Summary & PDF']];
+function caseScreen(c){
+  const a=analyze(c);
+  const dots={inv:a.missing.length>0,cl:a.clMissing.length>0,pt:a.bMiss.some(x=>['Patient name','Age','Sex','Surgery date'].includes(x)),dx:!c.f.proc};
+  return `
+  <div class="bar">
+    <button class="btn" data-act="back">← All cases</button>
+    <span style="flex:1"></span>
+    <button class="btn navy sm" data-act="pdf">PDF ⬇︎</button>
+    <button class="btn danger sm" data-act="del">Delete</button>
+  </div>
+  <div class="casehead">
+    <span id="ringBox">${ring(a.pct,a.status.k)}</span>
+    <div class="who"><b dir="auto">${esc(c.f.name||'New patient')}</b>
+      <div>${esc((PROCS[c.f.proc]||{}).en||'Procedure not set')}${c.f.surgDate?' · '+fmtD(c.f.surgDate):''}</div></div>
+    <span id="stBox">${stChip(a.status)}</span>
+  </div>
+  <div class="tabs">${TABS.map(([k,t])=>`<button class="tab ${view.tab===k?'on':''}" data-tab="${k}">${t}${dots[k]?'<span class="dot"></span>':''}</button>`).join('')}</div>
+  <div id="tabBody">${tabBody(c,a)}</div>`;
+}
+function tabBody(c,a){
+  const f=c.f;
+  switch(view.tab){
+  case 'pt':return `<div class="panel"><h3>Patient & scheduling</h3>${grid(c,PT_FIELDS.slice(0,4))}
+    <div class="body3">
+      ${fieldHTML(c,['wt','Weight (kg)','n'])}
+      ${fieldHTML(c,['ht','Height (cm)','n'])}
+      <div class="fld"><label>BMI (auto)</label><div class="calc" data-calc="bmi" data-focus="wt"></div></div>
+    </div>
+    ${grid(c,PT_FIELDS.slice(4))}</div>`;
+  case 'dx':{
+    const p=PROCS[f.proc];const s=p?SPEC[p.spec]:null;
+    let calc='';
+    if(p&&p.spec==='prostate')calc=`<div class="grid" style="margin-top:10px"><div class="fld wide"><label>NCCN risk group (auto)</label><div class="calc" data-calc="nccn"></div></div></div>`;
+    if(p&&p.spec==='renal')calc=`<div class="grid" style="margin-top:10px"><div class="fld wide"><label>R.E.N.A.L. nephrometry score (auto)</label><div class="calc" data-calc="renal"></div></div></div>`;
+    return `<div class="panel"><h3>Planned procedure</h3>${grid(c,DX_FIELDS)}
+      ${p?``:''}</div>
+      ${s?`<div class="panel"><h3>${esc(s.t)}</h3>${grid(c,s.f)}${calc}</div>`:''}`;
+  }
+  case 'rs':return `<div class="panel"><h3>Robotic suitability <small>Pneumoperitoneum, Trendelenburg & access</small></h3>${grid(c,RS_FIELDS)}
+    <p class="hint">Contraindications to steep Trendelenburg and pneumoperitoneum appear automatically as alerts in the Summary.</p></div>`;
+  case 'cm':{
+    const sb=stopbang(c);
+    return `<div class="panel"><h3>Comorbidities & anesthetic risk</h3>${grid(c,CM_FIELDS)}
+    <div class="grid" style="margin-top:10px"><div class="fld"><label>STOP-BANG (auto: BMI, age, sex, HTN included)</label><div class="calc" data-calc="sb">${sb.s}/8 · ${sb.risk} risk</div></div></div></div>`;
+  }
+  case 'med':{
+    const g=[];if(f.anticoag&&MED_GUIDE[f.anticoag])g.push(MED_GUIDE[f.anticoag]);
+    if(f.sglt2)g.push('SGLT2 inhibitor: stop 3 days before surgery (ertugliflozin 4 days).');
+    if(f.metformin)g.push('Metformin: omit on the day of surgery; withhold 48 h after IV contrast if eGFR < 30–45.');
+    if(f.insulin)g.push('Insulin: reduce basal (long-acting) dose ~20–25% the evening before; omit short-acting while fasting; VRIII if needed.');
+    if(f.glp1)g.push('GLP-1 agonist: follow current anesthesia protocol (hold dose / 24 h clear-liquid diet) — aspiration risk.');
+    if(f.acei)g.push('ACEi / ARB: usually omitted on the morning of surgery.');
+    if(f.bblock)g.push('Beta-blocker: continue, including the morning of surgery.');
+    if(f.steroid)g.push('Chronic steroids: continue + perioperative hydrocortisone stress dose.');
+    if(f.herbal)g.push('Herbal supplements: stop 1–2 weeks before surgery.');
+    return `<div class="panel"><h3>Medications & perioperative plan</h3>${grid(c,MED_FIELDS)}
+      ${g.length?`<div class="note info en" style="text-align:left"><b>Suggested plan</b> (confirm with anesthesia / cardiology):<ul style="margin:4px 0 0;padding-left:18px">${g.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}</div>`;
+  }
+  case 'inv':return invTab(c,a);
+  case 'att':return attTab(c);
+  case 'cl':{
+    return `<div class="panel"><h3>Consents & logistics</h3>
+      <div class="cl">${CL.filter(x=>x[2](c)||c.cl[x[0]]||x[0]==='consentMedia').map(x=>{const on=!!c.cl[x[0]];const rq=x[2](c);
+        return `<label class="chk ${on?'on':''}"><input type="checkbox" data-cl="${x[0]}" ${on?'checked':''}><span>${esc(x[1])} ${rq&&!on?'<span class="rq">• required</span>':''}</span></label>`}).join('')}</div>
+      <div class="grid" style="margin-top:12px">
+        ${fieldHTML(c,['bloodUnits','Blood units reserved','n'])}
+        ${fieldHTML(c,['abxPlan','Antibiotic prophylaxis','t'])}
+        ${fieldHTML(c,['vtePlan','VTE prophylaxis','t'])}
+        ${fieldHTML(c,['icuBed','ICU / HDU bed','s',['','Reserved','Not required','Waiting']])}
+        ${fieldHTML(c,['notes','Notes for the OR team','ta'],true)}
+      </div></div>`;
+  }
+  case 'sum':return sumTab(c,a);
+  }
+  return '';
+}
+function invTab(c,a){
+  const req=a.req;
+  const keys=view.showAllInv?Object.keys(INV):req.concat(Object.keys(c.inv).filter(k=>!req.includes(k)&&invDone(c.inv[k])));
+  const attCount=k=>(c.att||[]).filter(x=>x.inv===k).length;
+  const row=k=>{
+    const e=c.inv[k]||{};const d=invDone(e);const ab=d&&invAbn(c,k);const st=d&&invStale(c,k);const isReq=req.includes(k);
+    const cls=!d?(isReq?'miss':''):ab?'abn':'done';
+    const isNum=INV_NUM.includes(k);const unit=INV[k][1];
+    let lab=`${esc(INV[k][0])}${unit?` <span style="color:var(--mute);font-weight:400">(${esc(unit)})</span>`:''}`;
+    if(k==='creat'){const g=egfr(c);if(g!=null)lab+=` <span class="tag att">eGFR ${g.toFixed(0)}</span>`}
+    if(st)lab+=` <span class="tag stale">old</span>`;
+    if(ab)lab+=` <span class="tag flag">abn</span>`;
+    if(attCount(k))lab+=` <span class="tag att">📎${attCount(k)}</span>`;
+    if(!isReq)lab+=` <span class="tag" style="background:#eef3f7;color:var(--mute)">optional</span>`;
+    return `<tr class="invrow ${cls}"><td>${lab}</td><td><div class="cells">
+      <select class="inp" data-inv="${k}" data-p="st">${ST_OPTS.map(([v,t])=>`<option value="${v}" ${e.st===v?'selected':''}>${t}</option>`).join('')}</select>
+      <input class="inp" data-inv="${k}" data-p="val" ${isNum?'type="text" inputmode="decimal" data-num="1" autocomplete="off" dir="ltr"':'type="text" dir="auto"'} placeholder="${isNum?'value':'result'}" value="${esc(e.val)}">
+      <input class="inp" type="date" data-inv="${k}" data-p="dt" value="${esc(e.dt)}">
+    </div></td></tr>`;
+  };
+  return `<div class="panel"><h3>Required investigations <small>${a.req.length-a.missing.length}/${a.req.length} done</small></h3>
+    <p class="hint">The list adapts to the procedure, age and comorbidities. Red = missing, green = done, orange = abnormal. Labs older than 30 days before surgery (imaging 90 days) are marked “old”.</p>
+    <table class="invt"><tbody>${keys.map(row).join('')}</tbody></table>
+    <div class="bar" style="margin-top:8px"><button class="btn sm" data-act="allinv">${view.showAllInv?'Show required only':'Show all investigations'}</button>
+    <button class="btn sm" data-tab="att">📎 Upload X-rays & lab reports</button></div></div>`;
+}
+function attTab(c){
+  const can=!!ASSETS||IDB_OK;
+  const opts=[['','— link to investigation —']].concat(Object.keys(INV).map(k=>[k,INV[k][0]]));
+  const cats=[['xray','X-ray / imaging'],['lab','Lab report'],['path','Pathology'],['report','Report / letter'],['other','Other']];
+  return `<div class="panel"><h3>Attached X-rays & lab reports</h3>
+    ${can?`<div class="drop" id="drop"><div style="font-size:28px">📎</div><b>Upload photos or PDF files</b><div style="font-size:13px">X-rays, lab results, pathology reports — from camera or files</div>
+      <div class="bar" style="justify-content:center;margin:10px 0 0"><button class="btn pri" data-act="upload">Upload files</button></div></div>
+      <p class="hint">Photos are compressed automatically and included in the PDF sheet. Uploaded PDF files are listed by name in the sheet.${ASSETS?'':' Files are stored on this device.'}</p>`
+    :`<div class="note warn">File uploads are not available in this browser.</div>`}
+    <div class="atts">${(c.att||[]).map((x,i)=>`<div class="att">
+      <div class="th" data-view="${i}">${x.type==='application/pdf'?'<span class="pdf">PDF</span>':`<img ${isLocal(x.id)?`data-lid="${esc(x.id)}" src="${esc(attSrc(x.id))}"`:`src="/_blob/${esc(x.id)}"`} alt="" loading="lazy">`}</div>
+      <div class="bd">
+        <input class="inp" dir="auto" data-att="${i}" data-p="name" value="${esc(x.name)}">
+        <select class="inp ltr" data-att="${i}" data-p="cat">${cats.map(([v,t])=>`<option value="${v}" ${x.cat===v?'selected':''}>${t}</option>`).join('')}</select>
+        <select class="inp ltr" data-att="${i}" data-p="inv">${opts.map(([v,t])=>`<option value="${v}" ${x.inv===v?'selected':''}>${esc(t)}</option>`).join('')}</select>
+        <input class="inp ltr" type="date" data-att="${i}" data-p="dt" value="${esc(x.dt)}">
+        ${can?`<button class="rm" data-rmatt="${i}">Delete</button>`:''}
+      </div></div>`).join('')}</div>
+    ${!(c.att||[]).length?'<p class="hint" style="text-align:center">No attachments yet</p>':''}
+  </div>`;
+}
+function sumTab(c,a){
+  const crit=a.flags.filter(x=>x.l==='crit');
+  const pend=[...a.bMiss.map(x=>x+' (data)'),...a.missing.map(k=>INV[k][0]),...a.clMissing.map(k=>CL.find(x=>x[0]===k)[1])];
+  const waNum=waPhone(c.f.phone);
+  return `<div class="panel"><h3>Readiness</h3>
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">${ring(a.pct,a.status.k)}<div><div style="font-size:18px;font-weight:800">${a.status.t}</div></div></div>
+    ${a.flags.length?`<h3 style="margin-top:14px">Alerts <small>${crit.length} critical · ${a.flags.length-crit.length} other</small></h3><div class="flags">${a.flags.map(x=>`<div class="flag ${x.l}"><b>${x.l==='crit'?'⛔':x.l==='warn'?'⚠️':'ℹ️'}</b><span>${esc(x.m)}</span></div>`).join('')}</div>`:'<div class="note info">لا توجد تنبيهات</div>'}
+    ${pend.length?`<h3 style="margin-top:14px">To complete <small>${pend.length} pending</small></h3><ul class="pend">${pend.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}
+  </div>
+  <div class="panel"><h3>Preoperative sheet — PDF & WhatsApp</h3>
+    <div class="actions">
+      <button class="btn navy" data-act="pdf">📄 Download / share PDF</button>
+      <a class="btn wa" target="_blank" rel="noopener" href="https://wa.me/${waNum}?text=${encodeURIComponent(patientMsg(c,a))}">WhatsApp patient</a>
+      <a class="btn wa" style="background:#128c7e" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(teamMsg(c,a))}">WhatsApp team</a>
+    </div>
+    <p class="hint">On iPhone, “Download / share PDF” opens the share menu — choose WhatsApp to send the file directly. On a computer the file is saved; then attach it in WhatsApp.${waNum?'':' (Add the patient phone number in the Patient tab to open their chat directly.)'}</p>
+  </div>
+  <div class="panel"><h3>Patient message <small>in Arabic, for the patient</small></h3>
+    <textarea class="msgbox" id="pMsg" dir="rtl" readonly>${esc(patientMsg(c,a))}</textarea>
+    <div class="actions" style="margin-top:8px"><button class="btn sm" data-copy="pMsg">Copy</button></div></div>
+  <div class="panel"><h3>Team summary</h3>
+    <textarea class="msgbox" id="tMsg" dir="ltr" readonly>${esc(teamMsg(c,a))}</textarea>
+    <div class="actions" style="margin-top:8px"><button class="btn sm" data-copy="tMsg">Copy</button></div></div>`;
+}
+function waPhone(p){
+  let d=String(p||'').replace(/[٠-٩]/g,x=>'٠١٢٣٤٥٦٧٨٩'.indexOf(x)).replace(/\D/g,'');
+  if(!d)return '';if(d.startsWith('00'))d=d.slice(2);else if(d.startsWith('0'))d='20'+d.slice(1);
+  return d;
+}
+
+/* ---------------- Messages ---------------- */
+function patientMsg(c,a){
+  const f=c.f;const p=PROCS[f.proc];
+  const L=[];
+  L.push(`${UNIT_AR}`);
+  L.push(`السيد/ة ${f.name||''} — تجهيزات ما قبل العملية`);
+  if(p)L.push(`العملية: ${p.ar}`);
+  if(f.surgDate)L.push(`موعد العملية: ${new Date(f.surgDate).toLocaleDateString('ar-EG',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}`);
+  if(f.admitDate)L.push(`موعد الدخول: ${new Date(f.admitDate).toLocaleDateString('ar-EG',{weekday:'long',day:'numeric',month:'long'})}`);
+  const miss=a.missing.concat(a.stale);
+  if(miss.length){L.push('');L.push('الفحوصات المطلوب إجراؤها وإحضار نتائجها:');[...new Set(miss)].forEach(k=>L.push('• '+INV[k][0]))}
+  const m=[];
+  if(f.anticoag&&MED_GUIDE_AR[f.anticoag])m.push(MED_GUIDE_AR[f.anticoag]);
+  if(f.sglt2)m.push('أدوية السكر من نوع (جارديانس / فورسيجا / SGLT2): تُوقف قبل العملية بـ ٣ أيام');
+  if(f.metformin)m.push('الميتفورمين (جلوكوفاج): لا يُؤخذ يوم العملية');
+  if(f.insulin)m.push('الأنسولين: تُخفض الجرعة طويلة المفعول ليلة العملية حسب تعليمات طبيب التخدير');
+  if(f.glp1)m.push('حقن (أوزمبيك / ساكسندا / مونجارو): تُوقف حسب تعليمات طبيب التخدير — يجب الإبلاغ عنها');
+  if(f.herbal)m.push('الأعشاب والمكملات الغذائية: تُوقف قبل العملية بأسبوعين');
+  if(m.length){L.push('');L.push('تعليمات الأدوية:');m.forEach(x=>L.push('• '+x))}
+  if(f.proc==='rarp'){L.push('');L.push('• يُرجى البدء في تمارين قاع الحوض (تمارين كيجل) يومياً من الآن')}
+  if(f.smoke==='Current'){L.push('• يُرجى التوقف عن التدخين فوراً لتقليل مضاعفات الصدر')}
+  L.push('');L.push('• الصيام: لا طعام قبل العملية بـ ٦ ساعات، ويُسمح بالسوائل الشفافة حتى ساعتين قبل العملية (ما لم يُطلب غير ذلك)');
+  L.push('• إحضار كل الأشعة والتحاليل السابقة وقائمة الأدوية يوم الدخول');
+  L.push('');L.push(`${SURGEON_AR}`);L.push(`للاستفسار والحجز: ${CLINIC_PHONE}`);
+  return L.join('\n');
+}
+function teamMsg(c,a){
+  const f=c.f;const p=PROCS[f.proc];const L=[];
+  const b=bmi(c),g=egfr(c);
+  L.push(`*${UNIT_EN}* — Preoperative summary`);
+  L.push(`Patient: ${f.name||'—'}`);L.push(`Age ${f.age||'?'} y | ${f.sex||''} | MRN ${f.mrn||'—'}`);
+  L.push(`Procedure: ${p?p.en:'—'}${f.side?' ('+f.side+')':''}${f.approach?' · '+f.approach:''}`);
+  if(f.dx)L.push(`Dx: ${f.dx}`);
+  L.push(`Surgery: ${f.surgDate?fmtD(f.surgDate):'TBD'}${f.orOrder?' · '+f.orOrder:''} | ASA ${f.asa||'?'}${b?` | BMI ${b.toFixed(1)}`:''}${g?` | eGFR ${g.toFixed(0)}`:''}`);
+  const sp=specSummary(c);if(sp)L.push(sp);
+  const cm=comorbList(c);if(cm)L.push(`PMH: ${cm}`);
+  if(f.anticoag)L.push(`Antithrombotic: ${ANTICOAG.find(x=>x[0]===f.anticoag)[1]}${f.acStop?' — last dose '+fmtD(f.acStop):''}`);
+  L.push(`Readiness: ${a.pct}% — ${a.status.t}`);
+  if(a.flags.length){L.push('Alerts:');a.flags.slice(0,10).forEach(x=>L.push(`${x.l==='crit'?'⛔':x.l==='warn'?'⚠️':'•'} ${x.m}`))}
+  const pend=[...a.missing.map(k=>INV[k][0]),...a.clMissing.map(k=>CL.find(x=>x[0]===k)[1])];
+  if(pend.length)L.push('Pending: '+pend.join('; '));
+  if(f.bloodUnits)L.push(`Blood reserved: ${f.bloodUnits} units`);
+  if(f.notes)L.push('Notes: '+f.notes);
+  return L.join('\n');
+}
+function comorbList(c){
+  const f=c.f;const m=[];
+  if(f.htn)m.push('HTN');if(f.dm&&f.dm!=='None')m.push('DM ('+f.dm+')');if(f.ihd)m.push('IHD');if(f.stentDate)m.push('coronary stent '+fmtD(f.stentDate));
+  if(f.hf)m.push('HF');if(f.af)m.push('AF');if(f.valve)m.push('valvular disease');if(f.copd)m.push('COPD/asthma');if(f.osa)m.push('OSA');
+  if(f.ckd)m.push('CKD');if(f.liver)m.push('liver disease');if(f.stroke)m.push('previous stroke');if(f.vte)m.push('previous VTE');if(f.bleed)m.push('bleeding disorder');
+  if(f.smoke==='Current')m.push('current smoker');return m.join(', ');
+}
+function specSummary(c){
+  const f=c.f;const p=PROCS[f.proc];if(!p)return '';
+  const j=a=>a.filter(Boolean).join(' · ');
+  if(p.spec==='prostate'){const r=nccn(c);return j([f.psa_v&&`PSA ${f.psa_v}`,f.gg&&`GG ${f.gg}`,f.gleason&&`Gleason ${f.gleason}`,f.ct&&`c${f.ct}`,f.pirads&&`PI-RADS ${f.pirads}`,f.pvol&&`vol ${f.pvol} mL`,f.mriEce&&'MRI ECE+',f.mriSvi&&'MRI SVI+',f.cn,f.cm,r&&`NCCN: ${r}`,f.nerve&&`NS: ${f.nerve}`,f.plnd&&`PLND: ${f.plnd}`])}
+  if(p.spec==='renal'){const r=renal(c);return j([f.tsize&&`${f.tsize} cm`,f.ctn,r&&`RENAL ${r.score} (${r.cx})`,f.solitary&&'solitary kidney',f.thrombus&&f.thrombus!=='None'&&`thrombus: ${f.thrombus}`,f.split&&`split ${f.split}%`])}
+  if(p.spec==='bladder')return j([f.histo,f.bct,f.cis&&'CIS',f.hydro&&f.hydro!=='None'&&`hydro ${f.hydro}`,f.nac&&`NAC: ${f.nac}${f.nacN?' ×'+f.nacN:''}`,f.div&&`Diversion: ${f.div}${f.icud?' (intracorporeal)':''}`]);
+  if(p.spec==='utuc')return j([f.uloc,f.ugrade,f.usize&&`${f.usize} cm`,f.ucyto&&`cytology ${f.ucyto}`,f.ubladder&&'bladder tumor',f.bcuff&&`cuff: ${f.bcuff}`]);
+  if(p.spec==='upj')return j([f.split&&`split ${f.split}%`,f.t12&&`T½ ${f.t12} min`,f.curve,f.crossing&&'crossing vessel',f.stent&&'stent/PCN in place',f.redo&&'redo']);
+  if(p.spec==='adrenal')return j([f.asize&&`${f.asize} cm`,f.hu&&`${f.hu} HU`,f.afunc,f.alpha&&`alpha-blockade since ${fmtD(f.alphaDate)}`]);
+  if(p.spec==='bph')return j([f.pvol&&`vol ${f.pvol} mL`,f.psa_v&&`PSA ${f.psa_v}`,f.qmax&&`Qmax ${f.qmax}`,f.pvr_v&&`PVR ${f.pvr_v}`,f.ipss&&`IPSS ${f.ipss}`,f.cath&&'catheter']);
+  return f.gdetail||'';
+}
+
+/* ---------------- Live updates (no full re-render while typing) ---------------- */
+function refreshLive(){
+  const c=cases[view.id];if(!c)return;const a=analyze(c);
+  const rb=$('#ringBox');if(rb)rb.innerHTML=ring(a.pct,a.status.k);
+  const sb=$('#stBox');if(sb)sb.innerHTML=stChip(a.status);
+  document.querySelectorAll('[data-calc]').forEach(el=>{
+    const t=el.dataset.calc;
+    if(t==='bmi'){const b=bmi(c);el.innerHTML=b?`${b.toFixed(1)} <span class="t">${b<18.5?'Underweight':b<25?'Normal':b<30?'Overweight':b<35?'Obese I':b<40?'Obese II':'Obese III'}</span>`:'<span class="t">—</span>'}
+    if(t==='nccn'){const r=nccn(c);el.innerHTML=r?esc(r)+' <span class="t">(approximate — verify)</span>':'<span class="t">enter PSA, grade group & T stage</span>'}
+    if(t==='renal'){const r=renal(c);el.innerHTML=r?`${esc(r.score)} — ${r.cx}`:'<span class="t">enter size, E, N, L</span>'}
+    if(t==='sb'){const s=stopbang(c);el.textContent=`${s.s}/8 · ${s.risk} risk`}
+  });
+}
+
+/* ---------------- Events ---------------- */
+function afterRender(){refreshLive();fillLocalImgs()}
+document.addEventListener('click',e=>{
+  const fz=e.target.closest('[data-focus]');if(fz){const el=document.querySelector(`[data-k=${fz.dataset.focus}]`);if(el)el.focus();return}
+  const t=e.target.closest('[data-act],[data-open],[data-tab],[data-filter],[data-view],[data-rmatt],[data-copy]');if(!t)return;
+  if(t.dataset.open){view={...view,screen:'case',id:t.dataset.open,tab:'pt'};render();scrollTo(0,0);return}
+  if(t.dataset.tab){view.tab=t.dataset.tab;render();return}
+  if(t.dataset.filter){view.filter=t.dataset.filter;render();return}
+  if(t.dataset.view!=null){showAtt(+t.dataset.view);return}
+  if(t.dataset.rmatt!=null){confirmBox('Delete this attachment permanently?',()=>rmAtt(+t.dataset.rmatt));return}
+  if(t.dataset.copy){copyText($('#'+t.dataset.copy).value);return}
+  const act=t.dataset.act;
+  if(act==='new'){const c=newCase();view={...view,screen:'case',id:c.id,tab:'pt'};render();scrollTo(0,0)}
+  else if(act==='back'){view.screen='list';render()}
+  else if(act==='del'){confirmBox('Delete this case and all its attachments permanently?',async()=>{await removeCase(view.id);view.screen='list';render();toast('Deleted')})}
+  else if(act==='allinv'){view.showAllInv=!view.showAllInv;render()}
+  else if(act==='upload'){$('#fileIn').click()}
+  else if(act==='pdf'){makePDF(cases[view.id])}
+  else if(act==='export'){exportJSON()}
+  else if(act==='import'){$('#importIn').click()}
+  else if(act==='close'){closeModal()}
+});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.id==='q'){view.q=t.value;const pos=t.selectionStart;render();const q=$('#q');q.focus();try{q.setSelectionRange(pos,pos)}catch(_){}return}
+  if(t.dataset.num){const nv=toLatin(t.value).replace(/[^0-9.\-]/g,'');if(nv!==t.value){const pos=t.selectionStart;t.value=nv;try{t.setSelectionRange(pos,pos)}catch(_){}}}
+  const c=cases[view.id];if(!c)return;
+  if(t.dataset.k&&t.type!=='checkbox'&&t.tagName!=='SELECT'){c.f[t.dataset.k]=t.value;persist(c);refreshLive()}
+  else if(t.dataset.inv&&t.tagName!=='SELECT'){const e2=c.inv[t.dataset.inv]||(c.inv[t.dataset.inv]={});e2[t.dataset.p]=t.value;persist(c);refreshLive()}
+  else if(t.dataset.att&&t.tagName!=='SELECT'){c.att[+t.dataset.att][t.dataset.p]=t.value;persist(c)}
+});
+document.addEventListener('change',e=>{
+  const t=e.target;const c=cases[view.id];
+  if(t.id==='fileIn'){handleFiles(t.files);t.value='';return}
+  if(t.id==='importIn'){importJSON(t.files[0]);t.value='';return}
+  if(!c)return;
+  if(t.dataset.k&&(t.type==='checkbox'||t.tagName==='SELECT')){c.f[t.dataset.k]=t.type==='checkbox'?t.checked:t.value;persist(c);rerenderKeepScroll()}
+  else if(t.dataset.inv&&t.tagName==='SELECT'){const e2=c.inv[t.dataset.inv]||(c.inv[t.dataset.inv]={});e2.st=t.value;if(t.value&&!e2.dt&&t.value!=='req')e2.dt=new Date().toISOString().slice(0,10);persist(c);rerenderKeepScroll()}
+  else if(t.dataset.cl){c.cl[t.dataset.cl]=t.checked;persist(c);rerenderKeepScroll()}
+  else if(t.dataset.att&&t.tagName==='SELECT'){c.att[+t.dataset.att][t.dataset.p]=t.value;persist(c);if(view.tab==='att')rerenderKeepScroll()}
+});
+function rerenderKeepScroll(){const y=scrollY;render();scrollTo(0,y)}
+
+/* ---------------- Modal / toast ---------------- */
+function openModal(html,big){$('#modalBox').className='box'+(big?' big':'');$('#modalBox').innerHTML=html;$('#modal').classList.add('on')}
+function closeModal(){$('#modal').classList.remove('on')}
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+function confirmBox(msg,yes){
+  openModal(`<div style="font-weight:700;margin-bottom:14px">${esc(msg)}</div><div class="actions" style="justify-content:flex-end"><button class="btn" data-act="close">Cancel</button><button class="btn pri" id="yesBtn" style="background:var(--bad)">Delete</button></div>`);
+  $('#yesBtn').onclick=()=>{closeModal();yes()};
+}
+let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2600)}
+async function copyText(s){try{await navigator.clipboard.writeText(s);toast('Copied')}catch(e){toast('Select the text and copy it manually')}}
+function busy(on,txt){$('#busy').classList.toggle('on',on);if(txt)$('#busyTxt').textContent=txt}
+
+/* ---------------- Attachments ---------------- */
+function compressImage(file,maxDim=1800,q=0.85){
+  return new Promise((res)=>{
+    const url=URL.createObjectURL(file);const img=new Image();
+    img.onload=()=>{
+      let w=img.naturalWidth,h=img.naturalHeight;const s=Math.min(1,maxDim/Math.max(w,h));w=Math.round(w*s);h=Math.round(h*s);
+      const cv=document.createElement('canvas');cv.width=w;cv.height=h;const x=cv.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(img,0,0,w,h);
+      cv.toBlob(b=>{URL.revokeObjectURL(url);res(b||file)},'image/jpeg',q);
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);res(file)};
+    img.src=url;
+  });
+}
+async function handleFiles(list){
+  const c=cases[view.id];if(!c||!(ASSETS||IDB_OK)||!list||!list.length)return;
+  const files=[...list];let ok=0;
+  for(let i=0;i<files.length;i++){
+    const f=files[i];busy(true,`Uploading ${i+1} of ${files.length}…`);
+    try{
+      const isPdf=f.type==='application/pdf'||/\.pdf$/i.test(f.name);
+      const blob=isPdf?f:await compressImage(f);
+      let r;
+      if(ASSETS){r=await ASSETS.upload(blob,{type:isPdf?'application/pdf':'image/jpeg'})}
+      else{const id='L_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);await IDB.put(id,blob);r={id,sizeBytes:blob.size}}
+      const nm=f.name.replace(/\.[^.]+$/,'');
+      c.att.push({id:r.id,name:nm,type:isPdf?'application/pdf':'image/jpeg',cat:/lab|cbc|تحليل/i.test(nm)?'lab':'xray',inv:'',dt:new Date().toISOString().slice(0,10),size:r.sizeBytes});
+      persist(c,true);ok++;
+    }catch(e){
+      const m={too_large:'File larger than 20 MB',unsupported_type:'Unsupported file type (images or PDF only)',quota_or_state:'Attachment storage full',rate_limited:'Too many attempts — try again shortly'}[e&&e.code]||'Upload failed';
+      toast(m+': '+f.name);
+    }
+  }
+  busy(false);if(ok)toast(`${ok} file(s) uploaded`);render();
+}
+async function rmAtt(i){
+  const c=cases[view.id];const a=c.att[i];if(!a)return;
+  c.att.splice(i,1);persist(c,true);render();
+  await delAtt(a.id);
+}
+async function showAtt(i){
+  const c=cases[view.id];const a=c.att[i];if(!a)return;await loadLocal(a.id);const src=esc(attSrc(a.id));
+  if(a.type==='application/pdf'){openModal(`<div style="padding:8px"><b dir="auto">${esc(a.name)}</b><div class="actions" style="margin-top:12px"><a class="btn pri" href="${src}" target="_blank" rel="noopener">Open PDF</a><button class="btn" data-act="close">Close</button></div></div>`);return}
+  openModal(`<img src="${src}" alt=""><div class="actions" style="justify-content:space-between;margin-top:8px"><b dir="auto">${esc(a.name)}</b><button class="btn" data-act="close">Close</button></div>`,true);
+}
+
+/* ---------------- Report (PDF sheet) ---------------- */
+function v(x){return x==null||x===''?'—':esc(x)}
+function kvTable(pairs,cols=2){
+  const p=pairs.filter(x=>x);let h='<table>';
+  for(let i=0;i<p.length;i+=cols){h+='<tr>';for(let j=0;j<cols;j++){const q=p[i+j];h+=q?`<td class="k">${esc(q[0])}</td><td${q[2]?' class="rtl"':''}>${q[1]}</td>`:'<td class="k"></td><td></td>'}h+='</tr>'}
+  return h+'</table>';
+}
+function reportBlocks(c){
+  const f=c.f,a=analyze(c),p=PROCS[f.proc];const B=[];const b=bmi(c),g=egfr(c),sb=stopbang(c);
+  const gen=new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  B.push(`<div class="hdr">
+    <svg width="42" height="42" viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="6" r="3"/><path d="M16 9v5M8 14h16M8 14l-3 7M24 14l3 7M16 14v6M12 27h8M16 20l-4 7M16 20l4 7"/><circle cx="5" cy="22.5" r="1.5"/><circle cx="27" cy="22.5" r="1.5"/></svg>
+    <div><div class="t1">${UNIT_EN}</div><div class="t2">${UNIT_FULL} · Department of Urology</div><div class="t3">${UNIT_AR}</div></div>
+    <div class="tag"><div>PREOPERATIVE SHEET</div><div>Generated ${gen}</div></div></div>`);
+  B.push(`<div class="blk"><h4>1. Patient</h4>${kvTable([
+    ['Name',`<span class="rtl">${v(f.name)}</span>`],['MRN / Hospital no.',v(f.mrn)],
+    ['Age / Sex',`${v(f.age)} y / ${v(f.sex)}`],['Phone',v(f.phone)],
+    ['National ID',v(f.nid)],['Payment',`<span class="rtl">${v(f.payment)}</span>${f.payer?' — '+esc(f.payer):''}`],
+    ['Weight / Height',`${v(f.wt)} kg / ${v(f.ht)} cm`],['BMI',b?b.toFixed(1)+' kg/m²':'—'],
+    ['Surgery date',f.surgDate?fmtD(f.surgDate):'—'],['Admission',f.admitDate?fmtD(f.admitDate):'—'],
+    ['Console surgeon',v(f.surgeon)],['Assistant / Anesthetist',`${v(f.assistant)} / ${v(f.anesthetist)}`],
+    ['OR order / time',v(f.orOrder)],['Referred by',v(f.referral)]
+  ])}</div>`);
+  const sp=specSummary(c);
+  B.push(`<div class="blk"><h4>2. Diagnosis & planned procedure</h4>${kvTable([
+    ['Procedure',`<b>${p?esc(p.en):'—'}</b>${f.procOther?'<br>'+esc(f.procOther):''}`],['Side / Approach',`${v(f.side)} / ${v(f.approach)}`],
+    ['Diagnosis',v(f.dx)],['Platform / console time',`${v(f.robotSys)} / ${f.estTime?esc(f.estTime)+' h':'—'}`],
+    ['Disease details',sp?esc(sp):'—'],['Port / docking plan',v(f.ports)]
+  ])}</div>`);
+  const rs=[];if(f.glaucoma)rs.push('Glaucoma');if(f.icp)rs.push('Raised ICP');if(f.cvaRecent)rs.push('Stroke/TIA < 3 mo');if(f.vpShunt)rs.push('VP shunt');if(f.aaa)rs.push('AAA');if(f.cspine)rs.push('Neck/shoulder limitation');if(f.mesh)rs.push('Abdominal mesh');if(f.pelvicRT2)rs.push('Pelvic RT');
+  B.push(`<div class="blk"><h4>3. Robotic suitability</h4>${kvTable([
+    ['Prior abdominal surgery',`${v(f.priorAbd)}${f.priorAbdD?' — '+esc(f.priorAbdD):''}`],['Trendelenburg tolerance',v(f.trend)],
+    ['Positioning / pneumoperitoneum concerns',rs.length?esc(rs.join(', ')):'None recorded'],['Notes',v(f.rsNotes)]
+  ])}</div>`);
+  B.push(`<div class="blk"><h4>4. Comorbidities & anesthetic risk</h4>${kvTable([
+    ['Medical history',esc(comorbList(c)||'None recorded')],['ASA class',v(f.asa)],
+    ['Functional capacity ≥ 4 METs',v(f.mets4)],['STOP-BANG',`${sb.s}/8 (${sb.risk})`],
+    ['Allergies',v(f.allergy)],['Other',v(f.cmNotes)]
+  ])}</div>`);
+  const mg=[];if(f.anticoag)mg.push(`${ANTICOAG.find(x=>x[0]===f.anticoag)[1]}${f.acStop?' — last dose '+fmtD(f.acStop):''}${f.bridge?' — bridging':''}${f.acCleared?' (plan agreed)':' (plan NOT confirmed)'}`);
+  ['sglt2:SGLT2 inhibitor','metformin:Metformin','insulin:Insulin','glp1:GLP-1 agonist','acei:ACEi/ARB','bblock:Beta-blocker','steroid:Chronic steroids','herbal:Herbal/supplements'].forEach(s=>{const[k,l]=s.split(':');if(f[k])mg.push(l)});
+  B.push(`<div class="blk"><h4>5. Medications</h4>${kvTable([['Relevant medications',esc(mg.join(' · ')||'None recorded')],['Full list',v(f.medList)]],1)}</div>`);
+  // investigations
+  const keys=a.req.concat(Object.keys(c.inv).filter(k=>!a.req.includes(k)&&invDone(c.inv[k])));
+  let it='<table><tr><th style="width:38%">Investigation</th><th>Result</th><th style="width:16%">Date</th><th style="width:15%">Status</th></tr>';
+  keys.forEach(k=>{const e=c.inv[k]||{};const d=invDone(e),ab=d&&invAbn(c,k),st=d&&invStale(c,k);
+    let res=v(e.val);if(e.val&&INV[k][1]&&INV_NUM.includes(k))res+=' '+esc(INV[k][1]);if(k==='creat'&&g)res+=` (eGFR ${g.toFixed(0)})`;
+    const stt=!d?(e.st==='req'?'<span class="ab">Requested</span>':'<span class="no">Missing</span>'):ab?'<span class="ab">Abnormal</span>':'<span class="ok">Done</span>';
+    it+=`<tr><td>${esc(INV[k][0])}</td><td>${res}</td><td>${e.dt?fmtD(e.dt):'—'}</td><td>${stt}${st?' <span class="ab">(old)</span>':''}</td></tr>`});
+  it+='</table>';
+  B.push(`<div class="blk"><h4>6. Investigations</h4>${it}</div>`);
+  // checklist
+  const cl=CL.filter(x=>x[2](c)||c.cl[x[0]]);
+  let ct='<table>';for(let i=0;i<cl.length;i+=2){ct+='<tr>';for(let j=0;j<2;j++){const x=cl[i+j];ct+=x?`<td style="width:4%">${c.cl[x[0]]?'<span class="ok">✔</span>':'<span class="no">✘</span>'}</td><td>${esc(x[1])}</td>`:'<td></td><td></td>'}ct+='</tr>'}ct+='</table>';
+  B.push(`<div class="blk"><h4>7. Consents & logistics</h4>${ct}${kvTable([['Blood reserved',f.bloodUnits?esc(f.bloodUnits)+' units':'—'],['ICU / HDU bed',v(f.icuBed)],['Antibiotic prophylaxis',v(f.abxPlan)],['VTE prophylaxis',v(f.vtePlan)]])}</div>`);
+  const col={ok:['#e5f5ec','#1e8e4e'],warn:['#fff4e0','#c77700'],bad:['#fdeaea','#c62f2f']}[a.status.k];
+  const pend=[...a.bMiss,...a.missing.map(k=>INV[k][0]),...a.clMissing.map(k=>CL.find(x=>x[0]===k)[1])];
+  B.push(`<div class="blk"><h4>8. Readiness assessment</h4>
+    <div class="ready" style="background:${col[0]};color:${col[1]}"><div style="font-size:24px;font-weight:800">${a.pct}%</div><div><div style="font-size:15px;font-weight:800">${a.status.t}</div></div></div>
+    ${a.flags.length?`<b>Alerts</b><ul class="flagl">${a.flags.map(x=>`<li style="color:${x.l==='crit'?'#c62f2f':x.l==='warn'?'#9a5b00':'#24476b'}">${x.l==='crit'?'<b>CRITICAL:</b> ':''}${esc(x.m)}</li>`).join('')}</ul>`:''}
+    ${pend.length?`<b style="display:block;margin-top:6px">Pending items</b><div>${esc(pend.join(' · '))}</div>`:''}
+    ${f.notes?`<b style="display:block;margin-top:6px">Notes</b><div dir="auto">${esc(f.notes)}</div>`:''}
+  </div>`);
+  B.push(`<div class="blk"><div class="sig"><div>Console surgeon<br>${esc(f.surgeon||'')}</div><div>Anesthetist<br>${esc(f.anesthetist||'')}</div><div>Unit coordinator / nurse</div></div></div>`);
+  // attachments
+  const att=c.att||[];
+  if(att.length){
+    const pdfs=att.filter(x=>x.type==='application/pdf');
+    B.push(`<div class="blk" data-newpage="1"><h4>9. Attached imaging & lab reports (${att.length})</h4>${pdfs.length?`<div style="margin-bottom:6px">PDF files on record: ${pdfs.map(x=>esc(x.name)).join(', ')}</div>`:''}</div>`);
+    att.filter(x=>x.type!=='application/pdf').forEach(x=>{
+      const cat={xray:'Imaging',lab:'Lab report',path:'Pathology',report:'Report',other:'Attachment'}[x.cat]||'Attachment';
+      B.push(`<div class="blk"><div class="attimg"><img src="${esc(attSrc(x.id))}"><div><b>${cat}</b> — <span dir="auto">${esc(x.name)}</span>${x.inv&&INV[x.inv]?' · '+esc(INV[x.inv][0]):''}${x.dt?' · '+fmtD(x.dt):''}</div></div></div>`);
+    });
+  }
+  return B;
+}
+function reportFooter(c,page,total){return `${UNIT_EN} · Preoperative Sheet · ${esc(c.f.name||'')} · page ${page}/${total}`}
+
+/* ---------------- PDF generation ---------------- */
+function loadScript(src){return new Promise((res,rej)=>{if(document.querySelector(`script[src="${src}"]`)){res();return}const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
+async function ensurePdfLibs(){
+  if(!window.html2canvas)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+  if(!(window.jspdf&&window.jspdf.jsPDF))await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+}
+function waitImgs(root){return Promise.all([...root.querySelectorAll('img')].map(im=>im.complete?Promise.resolve():new Promise(r=>{im.onload=im.onerror=r})))}
+async function makePDF(c){
+  if(!c)return;
+  busy(true,'Preparing PDF…');
+  const rep=$('#rep');
+  try{
+    await ensurePdfLibs();
+    for(const a of c.att||[])await loadLocal(a.id);
+    const blocks=reportBlocks(c);
+    rep.innerHTML=blocks.map((h,i)=>`<div class="pb" data-i="${i}">${h}</div>`).join('');
+    try{await document.fonts.ready}catch(e){}
+    await waitImgs(rep);
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({unit:'mm',format:'a4',orientation:'portrait',compress:true});
+    const PW=210,PH=297,MT=8,MB=12;const usable=PH-MT-MB;
+    let y=MT;let first=true;
+    const els=[...rep.querySelectorAll('.pb')];
+    for(const el of els){
+      const forceNew=!!el.querySelector('[data-newpage]');
+      const cv=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false,windowWidth:794});
+      const mmPerPx=PW/cv.width;const hmm=cv.height*mmPerPx;
+      if(forceNew&&!first){pdf.addPage();y=MT}
+      if(hmm<=usable){
+        if(y+hmm>PH-MB){pdf.addPage();y=MT}
+        pdf.addImage(cv.toDataURL('image/jpeg',0.9),'JPEG',0,y,PW,hmm);y+=hmm;
+      }else{
+        // slice tall block across pages
+        let off=0;const sliceH=Math.floor(usable/mmPerPx);
+        if(y>MT+1){pdf.addPage();y=MT}
+        while(off<cv.height){
+          const h=Math.min(sliceH,cv.height-off);
+          const s=document.createElement('canvas');s.width=cv.width;s.height=h;s.getContext('2d').drawImage(cv,0,off,cv.width,h,0,0,cv.width,h);
+          pdf.addImage(s.toDataURL('image/jpeg',0.9),'JPEG',0,y,PW,h*mmPerPx);off+=h;
+          if(off<cv.height){pdf.addPage();y=MT}else y+=h*mmPerPx;
+        }
+      }
+      first=false;
+    }
+    const n=pdf.getNumberOfPages();
+    for(let i=1;i<=n;i++){pdf.setPage(i);pdf.setFontSize(8);pdf.setTextColor(123,138,152);pdf.text(`${UNIT_EN.replace('—','-')}  |  Preoperative Sheet  |  page ${i}/${n}`,PW/2,PH-5,{align:'center'})}
+    const blob=pdf.output('blob');
+    const fname=`Preop_${(c.f.name||'patient').replace(/[\\/:*?"<>|]+/g,'').trim().replace(/\s+/g,'_')}_${c.f.surgDate||new Date().toISOString().slice(0,10)}.pdf`;
+    busy(false);
+    await saveFile(fname,blob);
+  }catch(e){
+    busy(false);console.error(e);
+    // fallback: printable HTML
+    openModal(`<div style="padding:4px"><b>Couldn't create the PDF in this view.</b><p class="hint">Download the sheet as an HTML file, open it, then Print → Save as PDF.</p><div class="actions"><button class="btn pri" id="htmlFb">Download sheet (HTML)</button><button class="btn" data-act="close">Close</button></div></div>`);
+    $('#htmlFb').onclick=()=>{closeModal();saveFile(`Preop_${c.f.name||'patient'}.html`,reportHTMLDoc(c))};
+  }finally{rep.innerHTML=''}
+}
+function reportHTMLDoc(c){
+  const css=[...document.styleSheets].map(s=>{try{return [...s.cssRules].map(r=>r.cssText).filter(t=>t.includes('#rep')).join('\n')}catch(e){return ''}}).join('\n').replace(/#rep\b/g,'.rep').replace(/\.rep\{[^}]*position:\s*fixed;[^}]*\}/,'');
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Preoperative Sheet — ${esc(c.f.name||'')}</title><style>body{margin:0;font-family:Cairo,Arial,sans-serif}.rep{width:794px;margin:0 auto;direction:ltr;font-size:12px;line-height:1.45;color:#1b2733}${css}@media print{.blk{break-inside:avoid}}</style></head><body><div class="rep">${reportBlocks(c).join('').replace(/src="\/_blob\//g,`src="${location.origin}/_blob/`)}</div></body></html>`;
+}
+async function saveFile(name,data){
+  if(DL){
+    try{await DL.save({filename:name,data});toast('Done — choose WhatsApp in the share menu to send it');return}
+    catch(e){if(e&&e.code==='declined')return;if(e&&e.code==='rate_limited'){toast('Please wait a moment and try again');return}}
+  }
+  const mime=/\.pdf$/.test(name)?'application/pdf':/\.json$/.test(name)?'application/json':'text/html';
+  try{
+    const file=new File([data],name,{type:mime});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return}
+  }catch(e){if(e&&e.name==='AbortError')return}
+  try{
+    const blob=data instanceof Blob?data:new Blob([data],{type:/\.pdf$/.test(name)?'application/pdf':/\.json$/.test(name)?'application/json':'text/html'});
+    const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);
+    toast('File saved');
+  }catch(e){toast('Download not available in this view')}
+}
+
+/* ---------------- Backup ---------------- */
+function exportJSON(){saveFile(`robotic_preop_backup_${new Date().toISOString().slice(0,10)}.json`,JSON.stringify({unit:UNIT_EN,exported:new Date().toISOString(),cases},null,1))}
+function importJSON(file){
+  if(!file)return;const r=new FileReader();
+  r.onload=()=>{try{const o=JSON.parse(r.result);const cs=o.cases||o;let n=0;for(const k in cs){const c=norm(cs[k]);if(!c.id)continue;if(!cases[k]||(c.updated||0)>(cases[k].updated||0)){cases[k]=c;persist(c);n++}}lsSave();render();toast(`${n} case(s) imported`)}catch(e){toast('Invalid file')}};
+  r.readAsText(file);
+}
+
+/* ---------------- Drag & drop ---------------- */
+document.addEventListener('dragover',e=>{const d=e.target.closest&&e.target.closest('#drop');if(d){e.preventDefault();d.classList.add('over')}});
+document.addEventListener('dragleave',e=>{const d=e.target.closest&&e.target.closest('#drop');if(d)d.classList.remove('over')});
+document.addEventListener('drop',e=>{const d=e.target.closest&&e.target.closest('#drop');if(d){e.preventDefault();d.classList.remove('over');handleFiles(e.dataTransfer.files)}});
+
+/* ---------------- Boot ---------------- */
+lsLoad();render();initCloud();
+</script>
+</body>
+</html>
